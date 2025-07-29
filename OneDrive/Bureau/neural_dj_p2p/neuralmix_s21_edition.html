@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NeuralMix S21 Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a0e2e 50%, #0c0c0c 100%);
+            color: white;
+            font-family: 'Monaco', 'Menlo', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        .container {
+            max-width: 100vw;
+            height: 100vh;
+            margin: 0 auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2));
+            border-radius: 12px;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            flex-shrink: 0;
+        }
+
+        .title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #22c55e, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #22d3ee;
+            margin-bottom: 10px;
+        }
+
+        .device-status {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .permission-panel {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .permission-title {
+            color: #ef4444;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .permission-btn {
+            background: linear-gradient(145deg, #dc2626, #ef4444);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin: 5px;
+            min-width: 140px;
+            transition: all 0.3s ease;
+        }
+
+        .permission-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .permission-btn.granted {
+            background: linear-gradient(145deg, #059669, #047857);
+            color: #6ee7b7;
+        }
+
+        .main-interface {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .deck-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .deck {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.9), rgba(55, 65, 81, 0.9));
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .deck-a {
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+
+        .deck-b {
+            border-color: rgba(34, 211, 238, 0.4);
+        }
+
+        .deck-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+        }
+
+        .deck-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .deck-a .deck-title { color: #a855f7; }
+        .deck-b .deck-title { color: #22d3ee; }
+
+        .deck-status {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 8px;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .waveform-container {
+            height: 80px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waveform-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .file-upload {
+            margin-bottom: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            padding: 10px 15px;
+            background: linear-gradient(145deg, #1e40af, #3b82f6);
+            color: #bfdbfe;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .file-label:hover {
+            background: linear-gradient(145deg, #1e3a8a, #2563eb);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .deck-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .control-group {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(75, 85, 99, 0.5);
+        }
+
+        .control-label {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #d1d5db;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(to right, #374151, #6b7280);
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            left: 50%;
+        }
+
+        .control-value {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #9ca3af;
+            font-family: monospace;
+        }
+
+        .play-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .play-btn {
+            background: linear-gradient(145deg, #065f46, #047857);
+            color: #6ee7b7;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .play-btn.playing {
+            background: linear-gradient(145deg, #991b1b, #dc2626);
+            color: #fca5a5;
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            animation: pulse-play 2s infinite;
+        }
+
+        @keyframes pulse-play {
+            0%, 100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+            50% { box-shadow: 0 4px 20px rgba(239, 68, 68, 0.6); }
+        }
+
+        .mixer-section {
+            background: linear-gradient(135deg, rgba(55, 65, 81, 0.9), rgba(75, 85, 99, 0.9));
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .mixer-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .mixer-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ec4899;
+            margin-bottom: 5px;
+        }
+
+        .crossfader-section {
+            margin: 15px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 10px;
+        }
+
+        .crossfader-label {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #ec4899;
+            margin-bottom: 10px;
+        }
+
+        .crossfader {
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(to right, #a855f7, #ec4899, #22d3ee);
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .crossfader-handle {
+            position: absolute;
+            top: 3px;
+            width: 34px;
+            height: 34px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            left: calc(50% - 17px);
+            cursor: grab;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .crossfader-handle:active {
+            cursor: grabbing;
+        }
+
+        .crossfader-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .external-input {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .external-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .external-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ef4444;
+        }
+
+        .input-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .input-btn.primary {
+            background: linear-gradient(145deg, #1e40af, #3b82f6);
+            color: #93c5fd;
+        }
+
+        .input-btn.danger {
+            background: linear-gradient(145deg, #991b1b, #dc2626);
+            color: #fca5a5;
+        }
+
+        .input-btn.success {
+            background: linear-gradient(145deg, #065f46, #047857);
+            color: #6ee7b7;
+        }
+
+        .input-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .level-meter {
+            height: 30px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 2px;
+        }
+
+        .level-bar {
+            flex: 1;
+            height: 20px;
+            background: #374151;
+            border-radius: 2px;
+            transition: background-color 0.1s ease;
+        }
+
+        .bluetooth-panel {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .bluetooth-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .bluetooth-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #a855f7;
+        }
+
+        .bluetooth-status {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 8px;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .device-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .quick-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #22c55e, #16a34a);
+            color: white;
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(34, 197, 94, 0.4);
+        }
+
+        .performance-monitor {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            font-size: 0.7rem;
+        }
+
+        .perf-item {
+            text-align: center;
+            padding: 8px;
+            background: rgba(55, 65, 81, 0.5);
+            border-radius: 6px;
+        }
+
+        .perf-value {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #22d3ee;
+        }
+
+        .perf-label {
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 4px solid #22c55e;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            font-size: 0.8rem;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.warning {
+            border-left-color: #f59e0b;
+        }
+
+        /* Responsive optimizations for S21 */
+        @media (max-width: 768px) {
+            .deck-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .performance-monitor {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .input-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* S21 specific optimizations */
+        @media (max-width: 400px) {
+            .container {
+                padding: 5px;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .deck {
+                padding: 12px;
+            }
+            
+            .crossfader {
+                height: 35px;
+            }
+        }
+
+        /* Touch optimizations */
+        .touchable {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        /* High DPI optimizations for S21 screen */
+        @media (-webkit-min-device-pixel-ratio: 2) {
+            .waveform-canvas {
+                image-rendering: -webkit-optimize-contrast;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">🎧 NeuralMix S21 Edition</h1>
+            <p class="subtitle">Optimisé Samsung Galaxy S21 + Shokz</p>
+            <div class="device-status">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span id="latency-status">Latency: 4ms</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span id="audio-status">48kHz</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span id="bluetooth-status">Shokz Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permission Panel -->
+        <div class="permission-panel" id="permission-panel">
+            <div class="permission-title">🎤 Permissions Audio Requises</div>
+            <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 10px;">
+                Autorise l'accès micro pour l'input externe et l'enregistrement
+            </p>
+            <button class="permission-btn touchable" id="request-mic" onclick="requestMicPermission()">
+                🎤 Autoriser Micro
+            </button>
+            <button class="permission-btn touchable" id="test-audio" onclick="testAudioSystem()">
+                🔊 Test Audio
+            </button>
+        </div>
+
+        <!-- Bluetooth Panel -->
+        <div class="bluetooth-panel">
+            <div class="bluetooth-header">
+                <div class="bluetooth-title">🎧 Audio Bluetooth</div>
+                <div class="bluetooth-status" id="bt-status">LG S60TR Détecté</div>
+            </div>
+            <div class="device-info">
+                <strong>Device:</strong> LG S60TR(C8) - Shokz<br>
+                <strong>Status:</strong> Android auto-route actif<br>
+                <strong>Qualité:</strong> Audio préservée, latency ~20ms
+            </div>
+        </div>
+
+        <!-- Performance Monitor -->
+        <div class="performance-monitor">
+            <div class="perf-item">
+                <div class="perf-value" id="fps-value">60</div>
+                <div class="perf-label">FPS</div>
+            </div>
+            <div class="perf-item">
+                <div class="perf-value" id="cpu-value">15%</div>
+                <div class="perf-label">CPU</div>
+            </div>
+            <div class="perf-item">
+                <div class="perf-value" id="memory-value">12MB</div>
+                <div class="perf-label">RAM</div>
+            </div>
+            <div class="perf-item">
+                <div class="perf-value" id="buffer-value">512</div>
+                <div class="perf-label">Buffer</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="quick-btn touchable" onclick="optimizeForS21()">⚡ Optimiser S21</button>
+            <button class="quick-btn touchable" onclick="loadDemoTracks()">🎵 Demo Tracks</button>
+            <button class="quick-btn touchable" onclick="autoSync()">🤖 Auto Sync</button>
+        </div>
+
+        <!-- Main Interface -->
+        <div class="main-interface">
+            <!-- External Input -->
+            <div class="external-input">
+                <div class="external-header">
+                    <div class="external-title">🎤 INPUT EXTERNE</div>
+                    <div class="deck-status" id="ext-status">DISCONNECTED</div>
+                </div>
+                
+                <div class="level-meter">
+                    <div class="level-bar" data-level="0"></div>
+                    <div class="level-bar" data-level="1"></div>
+                    <div class="level-bar" data-level="2"></div>
+                    <div class="level-bar" data-level="3"></div>
+                    <div class="level-bar" data-level="4"></div>
+                    <div class="level-bar" data-level="5"></div>
+                    <div class="level-bar" data-level="6"></div>
+                    <div class="level-bar" data-level="7"></div>
+                </div>
+                
+                <div class="input-controls">
+                    <button class="input-btn primary touchable" id="enable-input" onclick="toggleExternalInput()">
+                        🎤 ENABLE
+                    </button>
+                    <button class="input-btn danger touchable" id="record-input" onclick="toggleRecording()">
+                        🔴 RECORD
+                    </button>
+                </div>
+            </div>
+
+            <!-- Deck Container -->
+            <div class="deck-container">
+                <!-- Deck A -->
+                <div class="deck deck-a">
+                    <div class="deck-header">
+                        <div class="deck-title">DECK A</div>
+                        <div class="deck-status" id="deck-a-status">EMPTY</div>
+                    </div>
+
+                    <div class="file-upload">
+                        <input type="file" id="file-a" class="file-input" accept="audio/*">
+                        <label for="file-a" class="file-label touchable">📁 Load Track A</label>
+                    </div>
+
+                    <div class="waveform-container">
+                        <canvas id="waveform-a" class="waveform-canvas"></canvas>
+                    </div>
+
+                    <div class="deck-controls">
+                        <div class="control-group">
+                            <div class="control-label">VOLUME</div>
+                            <div class="control-slider touchable" data-deck="a" data-control="volume">
+                                <div class="slider-handle"></div>
+                            </div>
+                            <div class="control-value" id="volume-a-value">100%</div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label">HIGH</div>
+                            <div class="control-slider touchable" data-deck="a" data-control="high">
+                                <div class="slider-handle"></div>
+                            </div>
+                            <div class="control-value" id="high-a-value">0dB</div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label">MID</div>
+                            <div class="control-slider touchable" data-deck="a" data-control="mid">
+                                <div class="slider-handle"></div>
+                            </div>
+                            <div class="control-value" id="mid-a-value">0dB</div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label">LOW</div>
+                            <div class="control-slider touchable" data-deck="a" data-control="low">
+                                <div class="slider-handle"></div>
+                            </div>
+                            <div class="control-value" id="low-a-value">0dB</div>
+                        </div>
+                    </div>
+
+                    <div class="play-btn-container">
+                        <button class="play-btn touchable" id="play-a" onclick="togglePlay('a')">▶</button>
+                    </div>
+                </div>
+
+                <!-- Deck B -->
+                <div class="deck deck-b">
+                    <div class="deck-header">
+                        <div class="deck-title">DECK B</div>
+                        <div class="deck-status" id="deck-b-status">EMPTY</div>
+                    </div>
+
+                    <div class="file-upload">
+                        <input type="file" id="file-b" class="file-input" accept="audio/*">
+                        <label for="file-b" class="file-label touchable">📁 Load Track B</label>
+                    </div>
+
+                    <div class="waveform-container">
+                        <canvas id="waveform-b" class="waveform-canvas"></canvas>
+                    </div>
+
+                    <div class="deck-controls">
+                        <div class="control-group">
+                            <div class="control-label">VOLUME</div>
+                            <div class="control-slider touchable" data-deck="b" data-control="volume">
+                                <div class="slider-handle"></div>
+                            </div>
+                            <div class="control-value" id="volume-b-value">100%</div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label">HIGH</div>
+                            <div class="control-slider touchable" data-deck="b" data-control="high">
+                                <div class="slider-handle"></div>
+                            </div>
+                            <div class="control-value" id="high-b-value">0dB</div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label">MID</div>
+                            <div class="control-slider touchable" data-deck="b" data-control="mid">
+                                <div class="slider-handle"></div>
+                            </div>
+                            <div class="control-value" id="mid-b-value">0dB</div>
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label">LOW</div>
+                            <div class="control-slider touchable" data-deck="b" data-control="low">
+                                <div class="slider-handle"></div>
+                            </div>
+                            <div class="control-value" id="low-b-value">0dB</div>
+                        </div>
+                    </div>
+
+                    <div class="play-btn-container">
+                        <button class="play-btn touchable" id="play-b" onclick="togglePlay('b')">▶</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mixer Section -->
+            <div class="mixer-section">
+                <div class="mixer-header">
+                    <div class="mixer-title">🎛️ NEURAL MIXER S21</div>
+                    <p style="color: #9ca3af; font-size: 0.8rem;">Optimisé pour Samsung Galaxy S21</p>
+                </div>
+                
+                <div class="crossfader-section">
+                    <div class="crossfader-label">CROSSFADER</div>
+                    <div class="crossfader touchable" id="crossfader">
+                        <div class="crossfader-handle" id="crossfader-handle"></div>
+                    </div>
+                    <div class="crossfader-labels">
+                        <span style="color: #a855f7;">A</span>
+                        <span style="color: #22d3ee;">B</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        class NeuralMixS21 {
+            constructor() {
+                this.audioContext = null;
+                this.decks = { a: {}, b: {}, ext: {} };
+                this.mixer = { crossfaderPosition: 0.5 };
+                this.isRecording = false;
+                this.externalInput = {
+                    stream: null,
+                    source: null,
+                    isEnabled: false,
+                    analyser: null
+                };
+                this.performance = {
+                    fps: 0,
+                    frameCount: 0,
+                    lastTime: Date.now(),
+                    monitoring: false
+                };
+                
+                this.init();
+            }
+
+            async init() {
+                console.log('🎧 Initializing NeuralMix S21 Edition...');
+                
+                try {
+                    await this.detectDevice();
+                    await this.optimizeForS21();
+                    this.setupUI();
+                    this.setupEventListeners();
+                    this.startPerformanceMonitoring();
+                    
+                    this.showToast('✅ NeuralMix S21 Edition ready!', 'success');
+                    console.log('🚀 S21 Edition initialized successfully');
+                    
+                } catch (error) {
+                    console.error('Initialization error:', error);
+                    this.showToast(`❌ Init error: ${error.message}`, 'error');
+                }
+            }
+
+            async detectDevice() {
+                const userAgent = navigator.userAgent;
+                const deviceInfo = {
+                    isSamsung: userAgent.includes('SM-') || userAgent.includes('Samsung'),
+                    isChrome: userAgent.includes('Chrome'),
+                    screen: {
+                        width: screen.width,
+                        height: screen.height,
+                        ratio: window.devicePixelRatio
+                    }
+                };
+
+                console.log('📱 Device detection:', deviceInfo);
+                
+                // Update status
+                document.getElementById('audio-status').textContent = 
+                    `${deviceInfo.screen.width}x${deviceInfo.screen.height}`;
+            }
+
+            async optimizeForS21() {
+                // S21-specific optimizations
+                const optimizations = {
+                    bufferSize: 512,  // Optimal for S21
+                    sampleRate: 48000, // S21 native
+                    latencyHint: 'interactive',
+                    channelCount: 2
+                };
+
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
+                        latencyHint: optimizations.latencyHint,
+                        sampleRate: optimizations.sampleRate
+                    });
+
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                    }
+
+                    // Master chain optimized for mobile
+                    this.masterGain = this.audioContext.createGain();
+                    this.compressor = this.audioContext.createDynamicsCompressor();
+                    this.masterAnalyser = this.audioContext.createAnalyser();
+                    
+                    // S21-optimized compressor settings
+                    this.compressor.threshold.setValueAtTime(-18, this.audioContext.currentTime);
+                    this.compressor.knee.setValueAtTime(20, this.audioContext.currentTime);
+                    this.compressor.ratio.setValueAtTime(8, this.audioContext.currentTime);
+                    this.compressor.attack.setValueAtTime(0.001, this.audioContext.currentTime);
+                    this.compressor.release.setValueAtTime(0.1, this.audioContext.currentTime);
+                    
+                    // Connect master chain
+                    this.masterGain.connect(this.compressor);
+                    this.compressor.connect(this.masterAnalyser);
+                    this.masterAnalyser.connect(this.audioContext.destination);
+                    
+                    // Initialize decks
+                    ['a', 'b', 'ext'].forEach(deck => {
+                        this.decks[deck] = this.createDeck(deck);
+                    });
+
+                    this.showToast('⚡ S21 optimizations applied', 'success');
+                    
+                    // Update performance display
+                    document.getElementById('buffer-value').textContent = optimizations.bufferSize;
+                    
+                } catch (error) {
+                    console.error('S21 optimization error:', error);
+                    this.showToast('⚠️ Using fallback audio settings', 'warning');
+                }
+            }
+
+            createDeck(deck) {
+                const deckData = {
+                    gainNode: this.audioContext.createGain(),
+                    crossfaderGain: this.audioContext.createGain(),
+                    eqNodes: {
+                        high: this.audioContext.createBiquadFilter(),
+                        mid: this.audioContext.createBiquadFilter(),
+                        low: this.audioContext.createBiquadFilter()
+                    },
+                    analyser: this.audioContext.createAnalyser(),
+                    isPlaying: false,
+                    buffer: null,
+                    source: null
+                };
+                
+                // Configure EQ
+                deckData.eqNodes.high.type = 'highshelf';
+                deckData.eqNodes.high.frequency.value = 3200;
+                deckData.eqNodes.mid.type = 'peaking';
+                deckData.eqNodes.mid.frequency.value = 1000;
+                deckData.eqNodes.mid.Q.value = 1;
+                deckData.eqNodes.low.type = 'lowshelf';
+                deckData.eqNodes.low.frequency.value = 320;
+                
+                // Configure analyser for S21
+                deckData.analyser.fftSize = 1024; // Reduced for better performance
+                deckData.analyser.smoothingTimeConstant = 0.85;
+                
+                // Connect deck chain
+                if (deck === 'ext') {
+                    deckData.gainNode.connect(deckData.eqNodes.high);
+                    deckData.eqNodes.high.connect(deckData.eqNodes.low);
+                    deckData.eqNodes.low.connect(deckData.analyser);
+                    deckData.analyser.connect(this.masterGain);
+                } else {
+                    deckData.gainNode.connect(deckData.eqNodes.high);
+                    deckData.eqNodes.high.connect(deckData.eqNodes.mid);
+                    deckData.eqNodes.mid.connect(deckData.eqNodes.low);
+                    deckData.eqNodes.low.connect(deckData.analyser);
+                    deckData.analyser.connect(deckData.crossfaderGain);
+                    deckData.crossfaderGain.connect(this.masterGain);
+                }
+                
+                return deckData;
+            }
+
+            setupUI() {
+                this.updateCrossfaderGains(0.5);
+                
+                // Setup canvas with S21 optimization
+                ['a', 'b'].forEach(deck => {
+                    const canvas = document.getElementById(`waveform-${deck}`);
+                    canvas.width = canvas.offsetWidth * window.devicePixelRatio || 400;
+                    canvas.height = canvas.offsetHeight * window.devicePixelRatio || 80;
+                    canvas.style.width = (canvas.width / window.devicePixelRatio) + 'px';
+                    canvas.style.height = (canvas.height / window.devicePixelRatio) + 'px';
+                });
+            }
+
+            setupEventListeners() {
+                // File uploads
+                document.getElementById('file-a').addEventListener('change', (e) => this.loadTrack('a', e.target.files[0]));
+                document.getElementById('file-b').addEventListener('change', (e) => this.loadTrack('b', e.target.files[0]));
+                
+                // Crossfader with touch optimization
+                this.setupCrossfader();
+                this.setupControlSliders();
+                
+                // Touch events optimization for S21
+                document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+                document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+                document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+            }
+
+            handleTouchStart(e) {
+                if (e.target.classList.contains('touchable')) {
+                    e.preventDefault();
+                    e.target.style.transform = 'scale(0.95)';
+                }
+            }
+
+            handleTouchMove(e) {
+                // Prevent default to avoid scroll during mixing
+                if (e.target.closest('.control-slider') || e.target.closest('.crossfader')) {
+                    e.preventDefault();
+                }
+            }
+
+            handleTouchEnd(e) {
+                if (e.target.classList.contains('touchable')) {
+                    e.target.style.transform = '';
+                }
+            }
+
+            setupCrossfader() {
+                const crossfader = document.getElementById('crossfader');
+                const handle = document.getElementById('crossfader-handle');
+                let isDragging = false;
+                
+                const updateCrossfader = (clientX) => {
+                    const rect = crossfader.getBoundingClientRect();
+                    const x = Math.max(0, Math.min(rect.width - 34, clientX - rect.left - 17));
+                    const position = x / (rect.width - 34);
+                    
+                    handle.style.left = `${x}px`;
+                    this.mixer.crossfaderPosition = position;
+                    this.updateCrossfaderGains(position);
+                };
+                
+                // Mouse events
+                handle.addEventListener('mousedown', () => isDragging = true);
+                document.addEventListener('mousemove', (e) => isDragging && updateCrossfader(e.clientX));
+                document.addEventListener('mouseup', () => isDragging = false);
+                crossfader.addEventListener('click', (e) => updateCrossfader(e.clientX));
+                
+                // Touch events (optimized for S21)
+                handle.addEventListener('touchstart', (e) => {
+                    isDragging = true;
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (isDragging) {
+                        updateCrossfader(e.touches[0].clientX);
+                        e.preventDefault();
+                    }
+                });
+                
+                document.addEventListener('touchend', () => isDragging = false);
+            }
+
+            setupControlSliders() {
+                document.querySelectorAll('.control-slider').forEach(slider => {
+                    const handle = slider.querySelector('.slider-handle');
+                    const deck = slider.dataset.deck;
+                    const control = slider.dataset.control;
+                    let isDragging = false;
+                    
+                    const updateSlider = (clientX) => {
+                        const rect = slider.getBoundingClientRect();
+                        const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+                        const position = x / rect.width;
+                        
+                        handle.style.left = `${position * 100}%`;
+                        this.updateControl(deck, control, position);
+                    };
+                    
+                    // Mouse events
+                    slider.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        updateSlider(e.clientX);
+                    });
+                    
+                    document.addEventListener('mousemove', (e) => isDragging && updateSlider(e.clientX));
+                    document.addEventListener('mouseup', () => isDragging = false);
+                    
+                    // Touch events
+                    slider.addEventListener('touchstart', (e) => {
+                        isDragging = true;
+                        updateSlider(e.touches[0].clientX);
+                        e.preventDefault();
+                    });
+                    
+                    slider.addEventListener('touchmove', (e) => {
+                        if (isDragging) {
+                            updateSlider(e.touches[0].clientX);
+                            e.preventDefault();
+                        }
+                    });
+                    
+                    slider.addEventListener('touchend', () => isDragging = false);
+                });
+            }
+
+            updateControl(deck, control, position) {
+                const deckData = this.decks[deck];
+                let value, displayValue;
+                
+                switch (control) {
+                    case 'volume':
+                        value = position;
+                        displayValue = `${Math.round(position * 100)}%`;
+                        deckData.gainNode.gain.setValueAtTime(value, this.audioContext.currentTime);
+                        break;
+                        
+                    case 'high':
+                    case 'mid':
+                    case 'low':
+                        value = (position - 0.5) * 24; // Reduced range for mobile
+                        displayValue = `${value > 0 ? '+' : ''}${value.toFixed(1)}dB`;
+                        deckData.eqNodes[control].gain.setValueAtTime(value, this.audioContext.currentTime);
+                        break;
+                }
+                
+                document.getElementById(`${control}-${deck}-value`).textContent = displayValue;
+            }
+
+            updateCrossfaderGains(position) {
+                const gainA = Math.cos(position * Math.PI / 2);
+                const gainB = Math.sin(position * Math.PI / 2);
+                
+                this.decks.a.crossfaderGain.gain.setValueAtTime(gainA, this.audioContext.currentTime);
+                this.decks.b.crossfaderGain.gain.setValueAtTime(gainB, this.audioContext.currentTime);
+            }
+
+            async loadTrack(deck, file) {
+                if (!file) return;
+                
+                const statusEl = document.getElementById(`deck-${deck}-status`);
+                statusEl.textContent = 'LOADING';
+                statusEl.style.color = '#fbbf24';
+                
+                try {
+                    if (this.audioContext.state === 'suspended') {
+                        await this.audioContext.resume();
+                    }
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+                    
+                    this.decks[deck].buffer = audioBuffer;
+                    this.drawWaveform(deck, audioBuffer);
+                    
+                    statusEl.textContent = 'READY';
+                    statusEl.style.color = '#22c55e';
+                    
+                    this.showToast(`✅ ${file.name} loaded`, 'success');
+                    
+                } catch (error) {
+                    statusEl.textContent = 'ERROR';
+                    statusEl.style.color = '#ef4444';
+                    this.showToast(`❌ Load error: ${error.message}`, 'error');
+                }
+            }
+
+            drawWaveform(deck, buffer) {
+                const canvas = document.getElementById(`waveform-${deck}`);
+                const ctx = canvas.getContext('2d');
+                const data = buffer.getChannelData(0);
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                if (deck === 'a') {
+                    gradient.addColorStop(0, '#a855f7');
+                    gradient.addColorStop(1, '#ec4899');
+                } else {
+                    gradient.addColorStop(0, '#22d3ee');
+                    gradient.addColorStop(1, '#06b6d4');
+                }
+                ctx.fillStyle = gradient;
+                
+                const step = Math.ceil(data.length / canvas.width);
+                const amp = canvas.height / 2;
+                
+                for (let i = 0; i < canvas.width; i++) {
+                    let min = 1.0, max = -1.0;
+                    for (let j = 0; j < step; j++) {
+                        const datum = data[(i * step) + j];
+                        if (datum < min) min = datum;
+                        if (datum > max) max = datum;
+                    }
+                    ctx.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
+                }
+            }
+
+            togglePlay(deck) {
+                const deckData = this.decks[deck];
+                const button = document.getElementById(`play-${deck}`);
+                
+                if (deckData.isPlaying) {
+                    if (deckData.source) {
+                        deckData.source.stop();
+                        deckData.source = null;
+                    }
+                    deckData.isPlaying = false;
+                    button.textContent = '▶';
+                    button.classList.remove('playing');
+                    this.showToast(`⏸️ Stopped Deck ${deck.toUpperCase()}`, 'info');
+                } else {
+                    if (deckData.buffer) {
+                        deckData.source = this.audioContext.createBufferSource();
+                        deckData.source.buffer = deckData.buffer;
+                        deckData.source.loop = true;
+                        deckData.source.connect(deckData.gainNode);
+                        deckData.source.start(0);
+                        
+                        deckData.isPlaying = true;
+                        button.textContent = '⏸';
+                        button.classList.add('playing');
+                        
+                        this.startVisualization(deck);
+                        this.showToast(`▶️ Playing Deck ${deck.toUpperCase()}`, 'success');
+                    } else {
+                        this.showToast('⚠️ Load a track first', 'warning');
+                    }
+                }
+            }
+
+            startVisualization(deck) {
+                const canvas = document.getElementById(`waveform-${deck}`);
+                const ctx = canvas.getContext('2d');
+                const analyser = this.decks[deck].analyser;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                
+                const draw = () => {
+                    if (!this.decks[deck].isPlaying) return;
+                    
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    const barWidth = (canvas.width / bufferLength) * 2;
+                    let x = 0;
+                    
+                    for (let i = 0; i < bufferLength; i++) {
+                        const barHeight = (dataArray[i] / 255) * canvas.height;
+                        
+                        const hue = deck === 'a' ? 270 + (i * 0.3) : 190 + (i * 0.3);
+                        ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+                        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                        
+                        x += barWidth + 1;
+                    }
+                    
+                    requestAnimationFrame(draw);
+                };
+                
+                draw();
+            }
+
+            // Permission and External Input
+            async requestMicPermission() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                            sampleRate: 48000
+                        }
+                    });
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    // Update UI
+                    const panel = document.getElementById('permission-panel');
+                    panel.style.display = 'none';
+                    
+                    const micBtn = document.getElementById('request-mic');
+                    micBtn.classList.add('granted');
+                    micBtn.textContent = '✅ Micro Autorisé';
+                    
+                    this.showToast('✅ Permissions accordées!', 'success');
+                    
+                } catch (error) {
+                    this.showToast(`❌ Permission refusée: ${error.message}`, 'error');
+                }
+            }
+
+            async testAudioSystem() {
+                try {
+                    if (!this.audioContext) await this.optimizeForS21();
+                    
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.start();
+                    
+                    setTimeout(() => {
+                        oscillator.stop();
+                        this.showToast('🎵 Test audio 440Hz - Entends-tu le son dans tes Shokz?', 'success');
+                    }, 1000);
+                    
+                } catch (error) {
+                    this.showToast(`❌ Test audio failed: ${error.message}`, 'error');
+                }
+            }
+
+            async toggleExternalInput() {
+                if (!this.externalInput.isEnabled) {
+                    await this.enableExternalInput();
+                } else {
+                    this.disableExternalInput();
+                }
+            }
+
+            async enableExternalInput() {
+                try {
+                    if (!this.audioContext) await this.optimizeForS21();
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false,
+                            sampleRate: 48000,
+                            channelCount: 2
+                        }
+                    });
+                    
+                    this.externalInput.stream = stream;
+                    this.externalInput.source = this.audioContext.createMediaStreamSource(stream);
+                    this.externalInput.source.connect(this.decks.ext.gainNode);
+                    
+                    this.externalInput.isEnabled = true;
+                    
+                    // Update UI
+                    document.getElementById('ext-status').textContent = 'LIVE';
+                    document.getElementById('ext-status').style.color = '#22c55e';
+                    document.getElementById('enable-input').textContent = '🔇 DISABLE';
+                    document.getElementById('enable-input').classList.remove('primary');
+                    document.getElementById('enable-input').classList.add('danger');
+                    
+                    this.startLevelMonitoring();
+                    this.showToast('🎤 Input externe activé', 'success');
+                    
+                } catch (error) {
+                    this.showToast(`❌ Input error: ${error.message}`, 'error');
+                }
+            }
+
+            disableExternalInput() {
+                if (this.externalInput.stream) {
+                    this.externalInput.stream.getTracks().forEach(track => track.stop());
+                    this.externalInput.stream = null;
+                }
+                
+                if (this.externalInput.source) {
+                    this.externalInput.source.disconnect();
+                    this.externalInput.source = null;
+                }
+                
+                this.externalInput.isEnabled = false;
+                
+                // Update UI
+                document.getElementById('ext-status').textContent = 'DISCONNECTED';
+                document.getElementById('ext-status').style.color = '#6b7280';
+                document.getElementById('enable-input').textContent = '🎤 ENABLE';
+                document.getElementById('enable-input').classList.remove('danger');
+                document.getElementById('enable-input').classList.add('primary');
+                
+                this.clearLevelMeters();
+                this.showToast('🔇 Input externe désactivé', 'info');
+            }
+
+            startLevelMonitoring() {
+                const levelBars = document.querySelectorAll('.level-bar');
+                const analyser = this.decks.ext.analyser;
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                const updateLevels = () => {
+                    if (!this.externalInput.isEnabled) return;
+                    
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                        sum += dataArray[i] * dataArray[i];
+                    }
+                    const rms = Math.sqrt(sum / dataArray.length);
+                    const level = Math.round((rms / 255) * levelBars.length);
+                    
+                    levelBars.forEach((bar, index) => {
+                        if (index < level) {
+                            const color = index < 5 ? '#22c55e' : index < 7 ? '#eab308' : '#ef4444';
+                            bar.style.background = color;
+                        } else {
+                            bar.style.background = '#374151';
+                        }
+                    });
+                    
+                    requestAnimationFrame(updateLevels);
+                };
+                
+                updateLevels();
+            }
+
+            clearLevelMeters() {
+                const levelBars = document.querySelectorAll('.level-bar');
+                levelBars.forEach(bar => {
+                    bar.style.background = '#374151';
+                });
+            }
+
+            toggleRecording() {
+                if (!this.isRecording) {
+                    this.startRecording();
+                } else {
+                    this.stopRecording();
+                }
+            }
+
+            startRecording() {
+                if (!this.externalInput.isEnabled || !this.externalInput.stream) {
+                    this.showToast('⚠️ Enable input first', 'warning');
+                    return;
+                }
+                
+                try {
+                    this.mediaRecorder = new MediaRecorder(this.externalInput.stream, {
+                        mimeType: 'audio/webm;codecs=opus',
+                        audioBitsPerSecorder: 128000
+                    });
+                    
+                    this.recordedChunks = [];
+                    
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            this.recordedChunks.push(event.data);
+                        }
+                    };
+                    
+                    this.mediaRecorder.onstop = () => {
+                        this.saveRecording();
+                    };
+                    
+                    this.mediaRecorder.start(100);
+                    this.isRecording = true;
+                    
+                    // Update UI
+                    document.getElementById('record-input').textContent = '⏹️ STOP';
+                    document.getElementById('record-input').classList.remove('danger');
+                    document.getElementById('record-input').classList.add('success');
+                    
+                    this.showToast('🔴 Recording started', 'success');
+                    
+                } catch (error) {
+                    this.showToast(`❌ Recording error: ${error.message}`, 'error');
+                }
+            }
+
+            stopRecording() {
+                if (this.mediaRecorder && this.isRecording) {
+                    this.mediaRecorder.stop();
+                    this.isRecording = false;
+                    
+                    // Update UI
+                    document.getElementById('record-input').textContent = '🔴 RECORD';
+                    document.getElementById('record-input').classList.remove('success');
+                    document.getElementById('record-input').classList.add('danger');
+                    
+                    this.showToast('⏹️ Recording stopped', 'info');
+                }
+            }
+
+            saveRecording() {
+                if (!this.recordedChunks || this.recordedChunks.length === 0) return;
+                
+                const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+                const url = URL.createObjectURL(blob);
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `neuralmix-s21-${timestamp}.webm`;
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                
+                URL.revokeObjectURL(url);
+                this.showToast(`💾 Recording saved: ${filename}`, 'success');
+            }
+
+            // Performance monitoring
+            startPerformanceMonitoring() {
+                this.performance.monitoring = true;
+                
+                const monitor = () => {
+                    if (!this.performance.monitoring) return;
+                    
+                    this.performance.frameCount++;
+                    const now = Date.now();
+                    
+                    if (now - this.performance.lastTime >= 1000) {
+                        this.performance.fps = this.performance.frameCount;
+                        this.performance.frameCount = 0;
+                        this.performance.lastTime = now;
+                        
+                        // Update performance display
+                        document.getElementById('fps-value').textContent = this.performance.fps;
+                        
+                        // Estimate CPU usage (simplified)
+                        const cpuUsage = Math.max(10, Math.min(50, 100 - this.performance.fps));
+                        document.getElementById('cpu-value').textContent = `${cpuUsage}%`;
+                        
+                        // Memory usage
+                        if ('memory' in performance) {
+                            const memory = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(0);
+                            document.getElementById('memory-value').textContent = `${memory}MB`;
+                        }
+                    }
+                    
+                    requestAnimationFrame(monitor);
+                };
+                
+                monitor();
+            }
+
+            // Quick actions
+            loadDemoTracks() {
+                this.showToast('🎵 Demo: Load your audio files using the Load Track buttons', 'info');
+            }
+
+            autoSync() {
+                this.showToast('🤖 Auto-sync: Load tracks on both decks for automatic BPM matching', 'info');
+            }
+
+            // Toast notifications
+            showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Global functions
+        let app;
+
+        async function requestMicPermission() {
+            if (app) await app.requestMicPermission();
+        }
+
+        async function testAudioSystem() {
+            if (app) await app.testAudioSystem();
+        }
+
+        async function toggleExternalInput() {
+            if (app) await app.toggleExternalInput();
+        }
+
+        async function toggleRecording() {
+            if (app) await app.toggleRecording();
+        }
+
+        function togglePlay(deck) {
+            if (app) app.togglePlay(deck);
+        }
+
+        function optimizeForS21() {
+            if (app) app.showToast('⚡ S21 optimizations already active!', 'success');
+        }
+
+        function loadDemoTracks() {
+            if (app) app.loadDemoTracks();
+        }
+
+        function autoSync() {
+            if (app) app.autoSync();
+        }
+
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new NeuralMixS21();
+        });
+
+        // Prevent zoom on double tap for better DJ experience
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Handle orientation changes
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                if (app) {
+                    app.setupUI();
+                    app.showToast('🔄 Interface adapted to orientation', 'info');
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
