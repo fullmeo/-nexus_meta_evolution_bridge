@@ -100,7 +100,8 @@ class NeuralSync {
     }
 }
 
-// Exporte une instance unique (singleton)
-const neuralSync = new NeuralSync();
+// Export de la classe et d'une instance singleton
+export { NeuralSync };
 
+const neuralSync = new NeuralSync();
 export default neuralSync;
