@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuralMix P2P Enhanced V11 - Audio Fixed</title>
+    <title>NeuralMix P2P Enhanced V11 - AudioSync Integration</title>
     <style>
         * {
             margin: 0;
@@ -637,12 +637,13 @@
         <!-- Header -->
         <div class="header">
             <h1 class="title">🎧 NeuralMix P2P V11</h1>
-            <p class="subtitle">Professional DJ Platform - Audio Fixed</p>
-            <p class="description">Real-time collaboration avec module audio stabilisé</p>
+            <p class="subtitle">Professional DJ Platform - AudioSync Module</p>
+            <p class="description">Real-time collaboration with modular audio architecture & BPM sync</p>
             <div class="quick-actions">
                 <button class="quick-btn" onclick="app.loadDemoTracks()">🎵 Demo</button>
                 <button class="quick-btn" onclick="app.togglePerfMonitor()">📊 Monitor</button>
-                <button class="quick-btn" onclick="app.autoSync()">🤖 Sync</button>
+                <button class="quick-btn" onclick="app.autoSync()">🤖 Auto-Sync</button>
+                <button class="quick-btn" onclick="app.enableMicrophone()">🎤 Mic ON</button>
                 <button class="quick-btn" onclick="app.shareSession()">📱 Share</button>
             </div>
         </div>
@@ -900,11 +901,16 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Import AudioSync module
+        import { AudioSync } from './src/js/modules/audioSync.js';
+
         class NeuralMixApp {
             constructor() {
-                this.audioContext = null;
-                this.decks = { a: {}, b: {} };
+                // Initialize AudioSync
+                this.audioSync = new AudioSync();
+
+                // UI State
                 this.mixer = { crossfaderPosition: 0.5 };
                 this.isRecording = false;
                 this.performanceMonitor = { active: false, fps: 0, frameCount: 0, lastTime: Date.now() };
@@ -913,7 +919,7 @@
                 this.stems = { a: { vocals: 1, drums: 1, bass: 1, melody: 1 }, b: { vocals: 1, drums: 1, bass: 1, melody: 1 } };
                 this.peerId = 'neuralmix-' + Math.random().toString(36).substr(2, 8);
                 this.isConnected = false;
-                
+
                 this.init();
             }
 
@@ -923,75 +929,43 @@
                     this.setupUI();
                     this.setupEventListeners();
                     this.setupSpectralAnalysis();
-                    this.log('🚀 NeuralMix V11 Audio Fixed ready!');
+                    this.log('🚀 NeuralMix V11 with AudioSync module ready!');
+                    this.log('✅ Audio engine: Modular architecture loaded');
                 } catch (error) {
                     this.log(`❌ Init failed: ${error.message}`);
                 }
             }
 
             async initAudio() {
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // Master chain - SIMPLIFIÉ
-                this.masterGain = this.audioContext.createGain();
-                this.compressor = this.audioContext.createDynamicsCompressor();
-                this.analyser = this.audioContext.createAnalyser();
-                
-                // Config compressor
-                this.compressor.threshold.setValueAtTime(-20, this.audioContext.currentTime);
-                this.compressor.knee.setValueAtTime(30, this.audioContext.currentTime);
-                this.compressor.ratio.setValueAtTime(8, this.audioContext.currentTime);
-                
-                // Connexion master
-                this.masterGain.connect(this.compressor);
-                this.compressor.connect(this.analyser);
-                this.analyser.connect(this.audioContext.destination);
-                
-                // Init decks
-                ['a', 'b'].forEach(deck => {
-                    this.decks[deck] = this.createDeck(deck);
-                });
-            }
-
-            createDeck(deck) {
-                const deckData = {
-                    gainNode: this.audioContext.createGain(),
-                    crossfaderGain: this.audioContext.createGain(),
-                    eqNodes: {
-                        high: this.audioContext.createBiquadFilter(),
-                        mid: this.audioContext.createBiquadFilter(),
-                        low: this.audioContext.createBiquadFilter()
-                    },
-                    analyser: this.audioContext.createAnalyser(),
-                    isPlaying: false,
-                    tempo: 1.0,
-                    bpm: 0,
-                    buffer: null,
-                    source: null
+                // Setup AudioSync callbacks
+                this.audioSync.onBPMDetected = (deckId, bpm, buffer) => {
+                    this.log(`🎵 BPM detected on deck ${deckId.toUpperCase()}: ${bpm} BPM`);
+                    this.updateBPMDisplay(deckId, bpm);
                 };
-                
-                // Config EQ
-                deckData.eqNodes.high.type = 'highshelf';
-                deckData.eqNodes.high.frequency.value = 3200;
-                deckData.eqNodes.mid.type = 'peaking';
-                deckData.eqNodes.mid.frequency.value = 1000;
-                deckData.eqNodes.mid.Q.value = 1;
-                deckData.eqNodes.low.type = 'lowshelf';
-                deckData.eqNodes.low.frequency.value = 320;
-                
-                // Config analyser
-                deckData.analyser.fftSize = 2048;
-                deckData.analyser.smoothingTimeConstant = 0.8;
-                
-                // Connexion deck chain
-                deckData.gainNode.connect(deckData.eqNodes.high);
-                deckData.eqNodes.high.connect(deckData.eqNodes.mid);
-                deckData.eqNodes.mid.connect(deckData.eqNodes.low);
-                deckData.eqNodes.low.connect(deckData.analyser);
-                deckData.analyser.connect(deckData.crossfaderGain);
-                deckData.crossfaderGain.connect(this.masterGain);
-                
-                return deckData;
+
+                this.audioSync.onError = (message, error) => {
+                    this.log(`❌ Audio Error: ${message}`);
+                    console.error(error);
+                };
+
+                this.audioSync.onAudioReady = (ready) => {
+                    if (ready) {
+                        this.log('🎧 Audio system initialized');
+                    }
+                };
+
+                // Initialize the audio system
+                const success = await this.audioSync.initialize();
+
+                if (!success) {
+                    throw new Error('Failed to initialize AudioSync');
+                }
+
+                // Create decks A and B
+                this.audioSync.createDeck('a');
+                this.audioSync.createDeck('b');
+
+                this.log('🎛️ Decks A and B created');
             }
 
             setupUI() {
@@ -1087,65 +1061,56 @@
             }
 
             updateControl(deck, control, position) {
-                const deckData = this.decks[deck];
                 let value, displayValue;
-                
+
                 switch (control) {
                     case 'volume':
                         value = position;
                         displayValue = `${Math.round(position * 100)}%`;
-                        deckData.gainNode.gain.setValueAtTime(value, this.audioContext.currentTime);
+                        this.audioSync.setVolume(deck, value);
                         break;
-                        
+
                     case 'high':
                     case 'mid':
                     case 'low':
                         value = (position - 0.5) * 24; // ±12dB range
                         displayValue = `${value > 0 ? '+' : ''}${value.toFixed(1)}dB`;
-                        deckData.eqNodes[control].gain.setValueAtTime(value, this.audioContext.currentTime);
+                        this.audioSync.setEQ(deck, control, value);
                         break;
                 }
-                
+
                 document.getElementById(`${control}-${deck}-value`).textContent = displayValue;
             }
 
             updateCrossfader(position) {
                 this.mixer.crossfaderPosition = position;
-                
+
                 // Smooth crossfade curve
                 const gainA = Math.cos(position * Math.PI / 2);
                 const gainB = Math.sin(position * Math.PI / 2);
-                
-                this.decks.a.crossfaderGain.gain.setValueAtTime(gainA, this.audioContext.currentTime);
-                this.decks.b.crossfaderGain.gain.setValueAtTime(gainB, this.audioContext.currentTime);
+
+                this.audioSync.setVolume('a', gainA);
+                this.audioSync.setVolume('b', gainB);
             }
 
             async loadTrack(deck, file) {
                 if (!file) return;
-                
+
                 const statusEl = document.getElementById(`deck-${deck}-status`);
                 statusEl.textContent = 'LOADING...';
                 statusEl.style.color = '#fbbf24';
-                
+
                 try {
-                    if (this.audioContext.state === 'suspended') {
-                        await this.audioContext.resume();
-                    }
-                    
-                    const arrayBuffer = await file.arrayBuffer();
-                    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-                    
-                    this.decks[deck].buffer = audioBuffer;
-                    this.decks[deck].duration = audioBuffer.duration;
-                    this.decks[deck].bpm = this.estimateBPM(audioBuffer);
-                    
-                    this.drawWaveform(deck, audioBuffer);
-                    this.updateBPMDisplay(deck);
-                    
+                    // Load audio file using AudioSync
+                    const audioData = await this.audioSync.loadAudioFile(deck, file);
+
+                    // Draw waveform
+                    this.drawWaveform(deck, audioData.buffer);
+
                     statusEl.textContent = 'READY';
                     statusEl.style.color = '#22c55e';
-                    
-                    this.log(`🎵 Loaded: ${file.name} (${Math.round(audioBuffer.duration)}s)`);
+
+                    this.log(`🎵 Loaded: ${audioData.fileName} (${Math.round(audioData.duration)}s, ${audioData.bpm} BPM)`);
                 } catch (error) {
                     statusEl.textContent = 'ERROR';
                     statusEl.style.color = '#ef4444';
@@ -1153,13 +1118,7 @@
                 }
             }
 
-            estimateBPM(buffer) {
-                // Simple BPM estimation
-                return Math.round(120 + Math.random() * 40);
-            }
-
-            updateBPMDisplay(deck) {
-                const bpm = this.decks[deck].bpm;
+            updateBPMDisplay(deck, bpm) {
                 document.getElementById(`bpm-${deck}`).textContent = `${bpm} BPM`;
             }
 
@@ -1186,28 +1145,24 @@
             }
 
             togglePlay(deck) {
-                const deckData = this.decks[deck];
+                const deckData = this.audioSync.decks.get(deck);
                 const button = document.getElementById(`play-${deck}`);
-                
+
+                if (!deckData) {
+                    this.log(`⚠️ Deck ${deck.toUpperCase()} not found`);
+                    return;
+                }
+
                 if (deckData.isPlaying) {
-                    if (deckData.source) {
-                        deckData.source.stop();
-                        deckData.source = null;
-                    }
-                    deckData.isPlaying = false;
+                    // Pause playback
+                    this.audioSync.pause(deck);
                     button.textContent = '▶';
                     button.classList.remove('playing');
-                    this.log(`⏸️ Stopped Deck ${deck.toUpperCase()}`);
+                    this.log(`⏸️ Paused Deck ${deck.toUpperCase()}`);
                 } else {
                     if (deckData.buffer) {
-                        deckData.source = this.audioContext.createBufferSource();
-                        deckData.source.buffer = deckData.buffer;
-                        deckData.source.loop = true;
-                        deckData.source.playbackRate.value = deckData.tempo;
-                        deckData.source.connect(deckData.gainNode);
-                        deckData.source.start(0);
-                        
-                        deckData.isPlaying = true;
+                        // Start playback
+                        this.audioSync.play(deck);
                         button.textContent = '⏸';
                         button.classList.add('playing');
                         this.startVisualization(deck);
@@ -1221,48 +1176,51 @@
             startVisualization(deck) {
                 const canvas = document.getElementById(`deck-${deck}-waveform`);
                 const ctx = canvas.getContext('2d');
-                const analyser = this.decks[deck].analyser;
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                
+
                 const draw = () => {
-                    if (!this.decks[deck].isPlaying) return;
-                    
-                    analyser.getByteFrequencyData(dataArray);
-                    
+                    const deckData = this.audioSync.decks.get(deck);
+                    if (!deckData || !deckData.isPlaying) return;
+
+                    // Get frequency data from AudioSync
+                    const dataArray = this.audioSync.getFrequencyData(deck);
+                    if (!dataArray) return;
+
+                    const bufferLength = dataArray.length;
+
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
+
                     const barWidth = (canvas.width / bufferLength) * 2.5;
                     let x = 0;
-                    
+
                     for (let i = 0; i < bufferLength; i++) {
                         const barHeight = (dataArray[i] / 255) * canvas.height;
-                        
+
                         const color = deck === 'a' ? `hsl(${270 + i}, 100%, 50%)` : `hsl(${190 + i}, 100%, 50%)`;
                         ctx.fillStyle = color;
                         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                        
+
                         x += barWidth + 1;
                     }
-                    
+
                     requestAnimationFrame(draw);
                 };
-                
+
                 draw();
             }
 
             adjustTempo(deck, change) {
-                const deckData = this.decks[deck];
-                deckData.tempo = Math.max(0.5, Math.min(2.0, deckData.tempo + (change * 0.01)));
-                
-                if (deckData.source) {
-                    deckData.source.playbackRate.value = deckData.tempo;
-                }
-                
-                const newBPM = Math.round(deckData.bpm * deckData.tempo);
+                const deckData = this.audioSync.decks.get(deck);
+                if (!deckData) return;
+
+                const newRate = Math.max(0.5, Math.min(2.0, deckData.playbackRate + (change * 0.01)));
+
+                // Update playback rate using AudioSync
+                this.audioSync.setPlaybackRate(deck, newRate);
+
+                const newBPM = Math.round(deckData.bpm * newRate);
                 document.getElementById(`bpm-${deck}`).textContent = `${newBPM} BPM`;
-                
-                this.log(`🎚️ Deck ${deck.toUpperCase()}: ${(deckData.tempo * 100).toFixed(1)}%`);
+
+                this.log(`🎚️ Deck ${deck.toUpperCase()}: ${(newRate * 100).toFixed(1)}%`);
             }
 
             toggleEffect(deck, effect, button) {
@@ -1401,20 +1359,20 @@
             startPerfMonitor() {
                 const monitor = () => {
                     if (!this.performanceMonitor.active) return;
-                    
+
                     this.performanceMonitor.frameCount++;
                     const now = Date.now();
-                    
+
                     if (now - this.performanceMonitor.lastTime >= 1000) {
                         this.performanceMonitor.fps = this.performanceMonitor.frameCount;
                         this.performanceMonitor.frameCount = 0;
                         this.performanceMonitor.lastTime = now;
-                        
+
                         document.getElementById('fps').textContent = this.performanceMonitor.fps;
                         document.getElementById('cpu').textContent = `${Math.random() * 20 + 10}%`;
-                        document.getElementById('audio-status').textContent = this.audioContext.state.toUpperCase();
+                        document.getElementById('audio-status').textContent = this.audioSync.audioContext ? this.audioSync.audioContext.state.toUpperCase() : 'SUSPENDED';
                     }
-                    
+
                     requestAnimationFrame(monitor);
                 };
                 monitor();
@@ -1423,31 +1381,46 @@
             setupSpectralAnalysis() {
                 const canvas = document.getElementById('spectral-canvas');
                 const ctx = canvas.getContext('2d');
-                
+
                 const drawSpectral = () => {
-                    const bufferLength = this.analyser.frequencyBinCount;
-                    const dataArray = new Uint8Array(bufferLength);
-                    this.analyser.getByteFrequencyData(dataArray);
-                    
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    const barWidth = canvas.width / bufferLength;
-                    
+                    // Get master analyser data from deck A and B combined
+                    const dataArrayA = this.audioSync.getFrequencyData('a');
+                    const dataArrayB = this.audioSync.getFrequencyData('b');
+
+                    if (!dataArrayA && !dataArrayB) {
+                        requestAnimationFrame(drawSpectral);
+                        return;
+                    }
+
+                    const bufferLength = dataArrayA ? dataArrayA.length : (dataArrayB ? dataArrayB.length : 128);
+                    const combinedData = new Uint8Array(bufferLength);
+
+                    // Combine frequency data from both decks
                     for (let i = 0; i < bufferLength; i++) {
-                        const barHeight = (dataArray[i] / 255) * canvas.height;
-                        
+                        const a = dataArrayA ? dataArrayA[i] : 0;
+                        const b = dataArrayB ? dataArrayB[i] : 0;
+                        combinedData[i] = Math.max(a, b);
+                    }
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    const barWidth = canvas.width / bufferLength;
+
+                    for (let i = 0; i < bufferLength; i++) {
+                        const barHeight = (combinedData[i] / 255) * canvas.height;
+
                         const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
                         gradient.addColorStop(0, '#22d3ee');
                         gradient.addColorStop(0.5, '#a855f7');
                         gradient.addColorStop(1, '#ec4899');
-                        
+
                         ctx.fillStyle = gradient;
                         ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth - 1, barHeight);
                     }
-                    
+
                     requestAnimationFrame(drawSpectral);
                 };
-                
+
                 drawSpectral();
             }
 
@@ -1468,14 +1441,59 @@
                 }
             }
 
+            autoSync() {
+                const deckA = this.audioSync.decks.get('a');
+                const deckB = this.audioSync.decks.get('b');
+
+                if (!deckA || !deckB || !deckA.bpm || !deckB.bpm) {
+                    this.log('⚠️ Load tracks on both decks first');
+                    return;
+                }
+
+                // Sync deck B to deck A
+                const result = this.audioSync.syncDecks('a', 'b');
+
+                if (result.success) {
+                    this.log(`🤖 Auto-sync: Deck B (${result.slaveBPM} BPM) → Deck A (${result.masterBPM} BPM)`);
+                    this.log(`   Playback rate adjusted to ${result.playbackRate.toFixed(3)}`);
+
+                    // Update BPM display
+                    document.getElementById('bpm-b').textContent = `${result.masterBPM} BPM (synced)`;
+                } else {
+                    this.log('❌ Auto-sync failed');
+                }
+            }
+
+            async enableMicrophone() {
+                try {
+                    const enabled = await this.audioSync.enableInput();
+
+                    if (enabled) {
+                        this.log('🎤 Microphone enabled - Live input active');
+                        this.audioSync.setMicVolume(0.5);
+                    } else {
+                        this.log('❌ Microphone access denied');
+                    }
+                } catch (error) {
+                    this.log(`❌ Microphone error: ${error.message}`);
+                }
+            }
+
+            disableMicrophone() {
+                this.audioSync.disableInput();
+                this.log('🎤 Microphone disabled');
+            }
+
             loadDemoTracks() {
                 this.log('🎵 Demo: Load your audio files to start mixing!');
+                this.log('   Deck A: Click "Load Track A" button');
+                this.log('   Deck B: Click "Load Track B" button');
             }
 
             shareSession() {
-                const shareText = `🎧 NeuralMix Session\n${window.location.href}`;
+                const shareText = `🎧 NeuralMix Session\n${window.location.href}\nDJ ID: ${this.peerId}`;
                 navigator.clipboard.writeText(shareText);
-                this.log('📱 Session link copied to clipboard');
+                this.log('📱 Session link & DJ ID copied to clipboard');
             }
 
             log(message) {
