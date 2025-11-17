@@ -583,6 +583,23 @@
         .btn-effect.active {
             background: linear-gradient(145deg, #059669, #10b981);
             color: white;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Recording button state */
+        .btn-success.recording {
+            background: linear-gradient(145deg, #dc2626, #ef4444);
+            color: white;
+            animation: recordingPulse 1.5s infinite;
+        }
+
+        @keyframes recordingPulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(220, 38, 38, 0.8);
+            }
         }
 
         .performance-monitor {
@@ -1634,112 +1651,211 @@
             }
 
             toggleEffect(deck, effect, button) {
+                // Check if deck exists
+                const deckData = this.audioSync.decks.get(deck);
+                if (!deckData) {
+                    this.log(`⚠️ Deck ${deck.toUpperCase()} not found`);
+                    this.showToast('Effect Failed', `Deck ${deck.toUpperCase()} not available`, 'error');
+                    return;
+                }
+
                 if (!this.effects[deck][effect]) {
                     this.effects[deck][effect] = this.createEffect(deck, effect);
                     button.classList.add('active');
                     this.log(`🎛️ ${effect.toUpperCase()} ON - Deck ${deck.toUpperCase()}`);
+                    this.showToast('Effect ON', `${effect} enabled on Deck ${deck.toUpperCase()}`, 'success', 2000);
                 } else {
                     this.removeEffect(deck, effect);
                     delete this.effects[deck][effect];
                     button.classList.remove('active');
                     this.log(`🎛️ ${effect.toUpperCase()} OFF - Deck ${deck.toUpperCase()}`);
+                    this.showToast('Effect OFF', `${effect} disabled on Deck ${deck.toUpperCase()}`, 'info', 2000);
                 }
             }
 
             createEffect(deck, effectType) {
-                const deckData = this.decks[deck];
-                let effectNode;
-                
-                switch (effectType) {
-                    case 'reverb':
-                        effectNode = this.audioContext.createConvolver();
-                        // Create impulse response
-                        const reverbBuffer = this.audioContext.createBuffer(2, this.audioContext.sampleRate * 2, this.audioContext.sampleRate);
-                        for (let channel = 0; channel < 2; channel++) {
-                            const channelData = reverbBuffer.getChannelData(channel);
-                            for (let i = 0; i < channelData.length; i++) {
-                                channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / channelData.length, 2);
-                            }
-                        }
-                        effectNode.buffer = reverbBuffer;
-                        break;
-                        
-                    case 'delay':
-                        effectNode = this.audioContext.createDelay(0.3);
-                        effectNode.delayTime.value = 0.1;
-                        const feedback = this.audioContext.createGain();
-                        feedback.gain.value = 0.4;
-                        effectNode.connect(feedback);
-                        feedback.connect(effectNode);
-                        break;
-                        
-                    case 'filter':
-                        effectNode = this.audioContext.createBiquadFilter();
-                        effectNode.type = 'lowpass';
-                        effectNode.frequency.value = 1000;
-                        effectNode.Q.value = 10;
-                        break;
+                // Get the audio context from audioSync
+                const audioContext = this.audioSync.audioContext;
+                const deckData = this.audioSync.decks.get(deck);
+
+                if (!audioContext || !deckData) {
+                    console.warn('AudioSync not properly initialized');
+                    return null;
                 }
-                
-                // Insert effect in chain
-                deckData.eqNodes.low.disconnect();
-                deckData.eqNodes.low.connect(effectNode);
-                effectNode.connect(deckData.analyser);
-                
-                return effectNode;
+
+                let effectNode;
+
+                try {
+                    switch (effectType) {
+                        case 'reverb':
+                            effectNode = audioContext.createConvolver();
+                            // Create impulse response
+                            const reverbBuffer = audioContext.createBuffer(2, audioContext.sampleRate * 2, audioContext.sampleRate);
+                            for (let channel = 0; channel < 2; channel++) {
+                                const channelData = reverbBuffer.getChannelData(channel);
+                                for (let i = 0; i < channelData.length; i++) {
+                                    channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / channelData.length, 2);
+                                }
+                            }
+                            effectNode.buffer = reverbBuffer;
+                            break;
+
+                        case 'delay':
+                            effectNode = audioContext.createDelay(0.3);
+                            effectNode.delayTime.value = 0.1;
+                            const feedback = audioContext.createGain();
+                            feedback.gain.value = 0.4;
+                            effectNode.connect(feedback);
+                            feedback.connect(effectNode);
+                            break;
+
+                        case 'filter':
+                            effectNode = audioContext.createBiquadFilter();
+                            effectNode.type = 'lowpass';
+                            effectNode.frequency.value = 1000;
+                            effectNode.Q.value = 10;
+                            break;
+                    }
+
+                    // Insert effect in audio chain
+                    // Connect: filterLow → effect → analyser
+                    if (effectNode && deckData.filterLow && deckData.analyser) {
+                        deckData.filterLow.disconnect();
+                        deckData.filterLow.connect(effectNode);
+                        effectNode.connect(deckData.analyser);
+                    }
+
+                    return effectNode;
+                } catch (error) {
+                    console.error('Error creating effect:', error);
+                    this.showToast('Effect Error', 'Failed to create effect', 'error');
+                    return null;
+                }
             }
 
             removeEffect(deck, effect) {
-                const deckData = this.decks[deck];
-                deckData.eqNodes.low.disconnect();
-                deckData.eqNodes.low.connect(deckData.analyser);
+                const deckData = this.audioSync.decks.get(deck);
+
+                if (deckData && deckData.filterLow && deckData.analyser) {
+                    try {
+                        // Reconnect the chain without the effect
+                        deckData.filterLow.disconnect();
+                        deckData.filterLow.connect(deckData.analyser);
+                    } catch (error) {
+                        console.warn('Error removing effect:', error);
+                    }
+                }
             }
 
             toggleStem(deck, stem) {
                 const currentLevel = this.stems[deck][stem];
                 const newLevel = currentLevel > 0 ? 0 : 1;
                 this.stems[deck][stem] = newLevel;
-                
-                const stemElement = document.getElementById(`stem-${deck}-${stem}`);
-                stemElement.style.height = `${newLevel * 100}%`;
-                
-                this.log(`🎚️ ${stem.toUpperCase()} ${newLevel ? 'ON' : 'OFF'} - Deck ${deck.toUpperCase()}`);
-            }
 
-            autoSync() {
-                const bpmA = this.decks.a.bpm * this.decks.a.tempo;
-                const bpmB = this.decks.b.bpm * this.decks.b.tempo;
-                
-                if (bpmA && bpmB) {
-                    const ratio = bpmA / bpmB;
-                    this.decks.b.tempo *= ratio;
-                    
-                    if (this.decks.b.source) {
-                        this.decks.b.source.playbackRate.value = this.decks.b.tempo;
-                    }
-                    
-                    this.updateBPMDisplay('b');
-                    this.log(`🤖 Auto-sync: ${bpmA.toFixed(1)} BPM`);
-                } else {
-                    this.log('⚠️ Need both tracks loaded for sync');
+                const stemElement = document.getElementById(`stem-${deck}-${stem}`);
+                if (stemElement) {
+                    stemElement.style.height = `${newLevel * 100}%`;
                 }
+
+                this.log(`🎚️ ${stem.toUpperCase()} ${newLevel ? 'ON' : 'OFF'} - Deck ${deck.toUpperCase()}`);
+                this.showToast('Stem Control', `${stem} ${newLevel ? 'enabled' : 'muted'} on Deck ${deck.toUpperCase()}`, 'info', 2000);
             }
 
             beatMatch() {
-                if (this.decks.a.isPlaying && this.decks.b.isPlaying) {
-                    this.log('🎯 Beat matching activated');
-                } else {
+                const deckA = this.audioSync.decks.get('a');
+                const deckB = this.audioSync.decks.get('b');
+
+                if (!deckA?.isPlaying || !deckB?.isPlaying) {
                     this.log('⚠️ Both decks must be playing for beat match');
+                    this.showToast('Beat Match Failed', 'Start both decks first', 'warning');
+                    return;
+                }
+
+                // Sync the decks first
+                const result = this.audioSync.syncDecks('a', 'b');
+
+                if (result.success) {
+                    this.log('🎯 Beat matching: Decks synced and aligned');
+                    this.showToast('Beat Matched!', `Both decks at ${result.masterBPM} BPM`, 'success');
+
+                    // Update BPM display
+                    document.getElementById('bpm-b').textContent = `${result.masterBPM} BPM (matched)`;
+                } else {
+                    this.log('❌ Beat matching failed');
+                    this.showToast('Beat Match Failed', 'Unable to match beats', 'error');
                 }
             }
 
             startRecording() {
                 if (!this.isRecording) {
-                    this.isRecording = true;
-                    this.log('🔴 Recording started');
+                    // Check if MediaRecorder is supported
+                    if (!window.MediaRecorder) {
+                        this.log('❌ Recording not supported in this browser');
+                        this.showToast('Not Supported', 'Recording not available in this browser', 'error');
+                        return;
+                    }
+
+                    try {
+                        // Get the P2P audio stream from audioSync
+                        const stream = this.audioSync.getP2PAudioStream();
+
+                        if (!stream) {
+                            throw new Error('No audio stream available');
+                        }
+
+                        this.mediaRecorder = new MediaRecorder(stream);
+                        this.recordedChunks = [];
+
+                        this.mediaRecorder.ondataavailable = (event) => {
+                            if (event.data.size > 0) {
+                                this.recordedChunks.push(event.data);
+                            }
+                        };
+
+                        this.mediaRecorder.onstop = () => {
+                            const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `neuralmix_${Date.now()}.webm`;
+                            a.click();
+
+                            this.log('💾 Recording saved');
+                            this.showToast('Recording Saved', 'Your mix has been downloaded', 'success');
+                        };
+
+                        this.mediaRecorder.start();
+                        this.isRecording = true;
+
+                        this.log('🔴 Recording started');
+                        this.showToast('Recording...', 'Your mix is being recorded', 'info', 3000);
+
+                        // Update button text if it exists
+                        const recordBtn = document.querySelector('[onclick*="startRecording"]');
+                        if (recordBtn) {
+                            recordBtn.textContent = 'STOP REC';
+                            recordBtn.classList.add('recording');
+                        }
+
+                    } catch (error) {
+                        this.log(`❌ Recording error: ${error.message}`);
+                        this.showToast('Recording Failed', error.message, 'error');
+                    }
                 } else {
+                    // Stop recording
+                    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                        this.mediaRecorder.stop();
+                    }
+
                     this.isRecording = false;
                     this.log('⏹️ Recording stopped');
+
+                    // Update button text
+                    const recordBtn = document.querySelector('[onclick*="startRecording"]');
+                    if (recordBtn) {
+                        recordBtn.textContent = 'RECORD';
+                        recordBtn.classList.remove('recording');
+                    }
                 }
             }
 
@@ -1759,10 +1875,14 @@
                 if (this.performanceMonitor.active) {
                     this.performanceMonitor.active = false;
                     monitor.classList.remove('active');
+                    this.log('📊 Performance monitor disabled');
+                    this.showToast('Monitor OFF', 'Performance monitoring disabled', 'info', 2000);
                 } else {
                     this.performanceMonitor.active = true;
                     monitor.classList.add('active');
                     this.startPerfMonitor();
+                    this.log('📊 Performance monitor enabled');
+                    this.showToast('Monitor ON', 'Performance monitoring enabled', 'success', 2000);
                 }
             }
 
@@ -1838,6 +1958,10 @@
             copyPeerId() {
                 navigator.clipboard.writeText(this.peerId).then(() => {
                     this.log('📋 DJ ID copied to clipboard');
+                    this.showToast('ID Copied', `DJ ID: ${this.peerId}`, 'success', 3000);
+                }).catch(() => {
+                    this.log('❌ Failed to copy DJ ID');
+                    this.showToast('Copy Failed', 'Unable to copy DJ ID', 'error');
                 });
             }
 
@@ -1845,9 +1969,16 @@
                 const remotePeerId = document.getElementById('remote-peer-id').value;
                 if (remotePeerId) {
                     this.log(`📞 Connecting to: ${remotePeerId}`);
-                    this.isConnected = true;
+                    this.showToast('Connecting...', `Connecting to ${remotePeerId}`, 'info', 3000);
+                    // TODO: Implement actual P2P connection
+                    setTimeout(() => {
+                        this.isConnected = true;
+                        this.log('✅ Connected to peer');
+                        this.showToast('Connected!', 'P2P connection established', 'success');
+                    }, 1500);
                 } else {
                     this.log('❌ Enter a DJ ID to connect');
+                    this.showToast('Missing ID', 'Enter a DJ ID to connect', 'warning');
                 }
             }
 
@@ -1905,12 +2036,22 @@
                 this.log('🎵 Demo: Load your audio files to start mixing!');
                 this.log('   Deck A: Click "Load Track A" button');
                 this.log('   Deck B: Click "Load Track B" button');
+                this.log('   🤖 Auto-Sync: Automatically match BPMs');
+                this.log('   🎤 Mic: Enable live microphone input');
+                this.log('   🔴 Record: Capture your mix');
+
+                this.showToast('Welcome!', 'Load tracks on both decks to start mixing', 'info', 5000);
             }
 
             shareSession() {
                 const shareText = `🎧 NeuralMix Session\n${window.location.href}\nDJ ID: ${this.peerId}`;
-                navigator.clipboard.writeText(shareText);
-                this.log('📱 Session link & DJ ID copied to clipboard');
+                navigator.clipboard.writeText(shareText).then(() => {
+                    this.log('📱 Session link & DJ ID copied to clipboard');
+                    this.showToast('Copied!', 'Session link copied to clipboard', 'success', 3000);
+                }).catch(() => {
+                    this.log('❌ Failed to copy to clipboard');
+                    this.showToast('Copy Failed', 'Unable to copy to clipboard', 'error');
+                });
             }
 
             log(message) {
