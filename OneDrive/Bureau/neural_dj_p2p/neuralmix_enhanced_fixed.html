@@ -1167,6 +1167,109 @@
             </div>
         </div>
 
+        <!-- Analog Hardware Integration Section -->
+        <div class="p2p-section" style="margin-top: 20px;">
+            <h2 class="p2p-title">🎛️ Analog Hardware Integration</h2>
+            <div class="connection-grid">
+                <!-- Audio Interface Input -->
+                <div class="connection-panel">
+                    <h3 style="color: #a855f7; margin-bottom: 10px;">🎚️ Audio Interface</h3>
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 5px; display: block;">Select Audio Device</label>
+                        <select id="audio-device-select" class="input">
+                            <option value="">Loading devices...</option>
+                        </select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                        <div>
+                            <label style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 5px; display: block;">Target Deck</label>
+                            <select id="analog-deck-select" class="input">
+                                <option value="a">Deck A</option>
+                                <option value="b">Deck B</option>
+                                <option value="ext1">External 1</option>
+                                <option value="ext2">External 2</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 5px; display: block;">Channels</label>
+                            <select id="analog-channels" class="input">
+                                <option value="2">Stereo (2)</option>
+                                <option value="1">Mono (1)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center; color: #d1d5db; cursor: pointer;">
+                            <input type="checkbox" id="dvs-enable" style="margin-right: 8px;">
+                            <span>Enable DVS (Digital Vinyl System)</span>
+                        </label>
+                        <select id="dvs-type" class="input" style="margin-top: 5px; display: none;">
+                            <option value="serato">Serato CV02</option>
+                            <option value="traktor">Traktor Scratch</option>
+                            <option value="rekordbox">Rekordbox DVS</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <button class="btn btn-success" id="connect-analog-btn" onclick="app.connectAnalogDeck()">🔌 Connect</button>
+                        <button class="btn btn-danger" id="disconnect-analog-btn" onclick="app.disconnectAnalogDeck()" style="display: none;">🔌 Disconnect</button>
+                        <button class="btn btn-primary" onclick="app.refreshAudioDevices()">🔄</button>
+                    </div>
+                    <!-- Input Level Meter -->
+                    <div id="analog-input-meter" style="margin-top: 10px; display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-size: 0.8rem; color: #9ca3af;">Input Level</span>
+                            <span id="analog-level-db" style="font-size: 0.8rem; color: #22d3ee;">-∞ dB</span>
+                        </div>
+                        <div style="height: 8px; background: #374151; border-radius: 4px; overflow: hidden;">
+                            <div id="analog-level-bar" style="height: 100%; width: 0%; background: linear-gradient(to right, #22c55e, #eab308, #ef4444); transition: width 0.1s;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MIDI Controller -->
+                <div class="connection-panel">
+                    <h3 style="color: #ec4899; margin-bottom: 10px;">🎹 MIDI Controller</h3>
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 5px; display: block;">Detected Controllers</label>
+                        <select id="midi-device-select" class="input">
+                            <option value="">No MIDI devices</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 5px; display: block;">Controller Preset</label>
+                        <select id="midi-preset-select" class="input">
+                            <option value="generic">Generic MIDI</option>
+                            <option value="pioneer-ddj-400">Pioneer DDJ-400</option>
+                            <option value="pioneer-ddj">Pioneer DDJ Series</option>
+                            <option value="numark-mixtrack">Numark Mixtrack</option>
+                            <option value="traktor-s2">Traktor Kontrol S2</option>
+                            <option value="custom">Custom Mapping</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <button class="btn btn-success" onclick="app.loadMIDIMapping()">📥 Load Preset</button>
+                        <button class="btn btn-primary" onclick="app.toggleMIDILearn()">🎓 MIDI Learn</button>
+                    </div>
+                    <div id="midi-status" style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 0.75rem; color: #9ca3af; display: none;">
+                        <div><strong>Last MIDI:</strong> <span id="midi-last-message">-</span></div>
+                        <div><strong>Mappings:</strong> <span id="midi-mapping-count">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hardware Setup Guide -->
+            <div class="connection-panel" style="margin-top: 15px;">
+                <h3 style="color: #22d3ee; margin-bottom: 10px;">📖 Hardware Setup Guide</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <button class="btn btn-primary" onclick="app.showHardwareGuide('turntable')">🎵 Turntables</button>
+                    <button class="btn btn-primary" onclick="app.showHardwareGuide('cdj')">💿 CDJs</button>
+                    <button class="btn btn-primary" onclick="app.showHardwareGuide('controller')">🎛️ Controllers</button>
+                    <button class="btn btn-primary" onclick="app.showHardwareGuide('dvs')">📀 DVS Setup</button>
+                    <button class="btn btn-primary" onclick="app.showHardwareGuide('audio-interface')">🔊 Audio Interfaces</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Mixing Interface -->
         <div class="main-grid">
             <!-- Deck A -->
@@ -1404,6 +1507,8 @@
         import { AudioSync } from './src/js/modules/audioSync.js';
         // Import StreamingService module
         import { StreamingService } from './src/js/modules/streamingService.js';
+        // Import AnalogDeck module
+        import { AnalogDeck } from './src/js/modules/analogDeck.js';
 
         class NeuralMixApp {
             constructor() {
@@ -1412,6 +1517,10 @@
 
                 // Initialize StreamingService (will be set after audioSync is initialized)
                 this.streamingService = null;
+
+                // Initialize AnalogDeck (will be set after audioSync is initialized)
+                this.analogDeck = null;
+                this.connectedAnalogDeck = null;
 
                 // UI State
                 this.mixer = { crossfaderPosition: 0.5 };
@@ -1490,6 +1599,62 @@
                 };
 
                 this.log('📺 Streaming service initialized');
+
+                // Initialize AnalogDeck
+                this.analogDeck = new AnalogDeck(this.audioSync);
+
+                // Setup analog deck callbacks
+                this.analogDeck.onInputReady = (metadata) => {
+                    this.log(`🎛️ Analog input ready: ${metadata.label} → ${metadata.deckId.toUpperCase()}`);
+                    this.log(`   Channels: ${metadata.channelCount}, Sample Rate: ${metadata.sampleRate}Hz`);
+                    if (metadata.dvsEnabled) {
+                        this.log(`   DVS: Enabled`);
+                    }
+                    this.showToast('Hardware Connected', `${metadata.label} connected to ${metadata.deckId.toUpperCase()}`, 'success');
+                };
+
+                this.analogDeck.onInputError = (message, error) => {
+                    this.log(`❌ Analog Deck Error: ${message}`);
+                    this.showToast('Hardware Error', message, 'error');
+                    console.error(error);
+                };
+
+                this.analogDeck.onTimecodeDetected = (timecode) => {
+                    // Update UI with DVS status
+                    if (timecode.quality > 70) {
+                        const direction = timecode.direction === 'forward' ? '▶' : '◀';
+                        this.log(`📀 DVS ${timecode.deckId.toUpperCase()}: ${direction} ${timecode.speed.toFixed(2)}x (${Math.round(timecode.quality)}%)`);
+                    }
+                };
+
+                this.analogDeck.onMIDIMessage = (midi) => {
+                    const status = document.getElementById('midi-status');
+                    const lastMessage = document.getElementById('midi-last-message');
+                    if (status && lastMessage) {
+                        status.style.display = 'block';
+                        lastMessage.textContent = `${midi.command} - Note: ${midi.note}, Value: ${Math.round(midi.value * 127)}`;
+                    }
+                };
+
+                this.analogDeck.onLevelUpdate = (levelData) => {
+                    const levelBar = document.getElementById('analog-level-bar');
+                    const levelDB = document.getElementById('analog-level-db');
+                    if (levelBar && levelDB) {
+                        const percentage = Math.min(100, levelData.level * 100);
+                        levelBar.style.width = `${percentage}%`;
+
+                        // Convert to dB
+                        const db = levelData.level > 0 ? 20 * Math.log10(levelData.level) : -Infinity;
+                        levelDB.textContent = db === -Infinity ? '-∞ dB' : `${db.toFixed(1)} dB`;
+                    }
+                };
+
+                // Initialize analog deck system
+                await this.analogDeck.initialize();
+                this.log('🎛️ Analog deck system initialized');
+
+                // Refresh audio devices
+                this.refreshAudioDevices();
             }
 
             setupUI() {
@@ -1531,6 +1696,15 @@
                 document.getElementById('chat-input').addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') this.addNote();
                 });
+
+                // DVS checkbox toggle
+                const dvsCheckbox = document.getElementById('dvs-enable');
+                const dvsTypeSelect = document.getElementById('dvs-type');
+                if (dvsCheckbox && dvsTypeSelect) {
+                    dvsCheckbox.addEventListener('change', (e) => {
+                        dvsTypeSelect.style.display = e.target.checked ? 'block' : 'none';
+                    });
+                }
             }
 
             setupCrossfader() {
@@ -2368,6 +2542,329 @@ For live RTMP streaming, you need server-side software.
 
                 // Also show in alert for easy reading
                 alert(infoText);
+            }
+
+            // ========== ANALOG HARDWARE METHODS ==========
+
+            async refreshAudioDevices() {
+                try {
+                    const devices = await this.analogDeck.getAvailableInputDevices();
+                    const select = document.getElementById('audio-device-select');
+
+                    if (!select) return;
+
+                    select.innerHTML = '';
+
+                    if (devices.length === 0) {
+                        select.innerHTML = '<option value="">No audio devices found</option>';
+                        this.showToast('No Devices', 'No audio input devices detected', 'warning');
+                        return;
+                    }
+
+                    devices.forEach(device => {
+                        const option = document.createElement('option');
+                        option.value = device.id;
+                        option.textContent = device.label;
+                        select.appendChild(option);
+                    });
+
+                    this.log(`🔄 Found ${devices.length} audio input device(s)`);
+
+                    // Also refresh MIDI devices
+                    this.refreshMIDIDevices();
+
+                } catch (error) {
+                    this.log(`❌ Failed to refresh audio devices: ${error.message}`);
+                    this.showToast('Device Error', 'Failed to enumerate devices', 'error');
+                }
+            }
+
+            refreshMIDIDevices() {
+                const status = this.analogDeck.getStatus();
+                const select = document.getElementById('midi-device-select');
+
+                if (!select) return;
+
+                select.innerHTML = '';
+
+                if (status.midiInputs.length === 0) {
+                    select.innerHTML = '<option value="">No MIDI devices</option>';
+                    return;
+                }
+
+                status.midiInputs.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.id;
+                    option.textContent = `${device.name}${device.manufacturer ? ' (' + device.manufacturer + ')' : ''}`;
+                    select.appendChild(option);
+                });
+
+                this.log(`🎹 Found ${status.midiInputs.length} MIDI device(s)`);
+            }
+
+            async connectAnalogDeck() {
+                const deviceId = document.getElementById('audio-device-select').value;
+                const deckId = document.getElementById('analog-deck-select').value;
+                const channelCount = parseInt(document.getElementById('analog-channels').value);
+                const dvsEnabled = document.getElementById('dvs-enable').checked;
+                const dvsType = document.getElementById('dvs-type').value;
+
+                if (!deviceId) {
+                    this.showToast('No Device', 'Select an audio device first', 'warning');
+                    return;
+                }
+
+                try {
+                    this.log(`🔌 Connecting audio interface to ${deckId.toUpperCase()}...`);
+                    this.showToast('Connecting...', 'Initializing audio interface', 'info', 2000);
+
+                    const metadata = await this.analogDeck.connectAudioInterface(deckId, {
+                        deviceId: deviceId,
+                        channelCount: channelCount,
+                        dvsEnabled: dvsEnabled
+                    });
+
+                    if (dvsEnabled) {
+                        await this.analogDeck.enableDVS(deckId, dvsType);
+                    }
+
+                    // Update UI
+                    document.getElementById('connect-analog-btn').style.display = 'none';
+                    document.getElementById('disconnect-analog-btn').style.display = 'block';
+                    document.getElementById('analog-input-meter').style.display = 'block';
+
+                    // Update deck status
+                    document.getElementById(`deck-${deckId}-status`).textContent = 'ANALOG';
+                    document.getElementById(`deck-${deckId}-status`).style.color = '#a855f7';
+
+                    this.connectedAnalogDeck = deckId;
+
+                } catch (error) {
+                    this.log(`❌ Failed to connect analog deck: ${error.message}`);
+                    this.showToast('Connection Failed', error.message, 'error');
+                }
+            }
+
+            disconnectAnalogDeck() {
+                if (!this.connectedAnalogDeck) {
+                    this.showToast('No Connection', 'No analog deck connected', 'warning');
+                    return;
+                }
+
+                const deckId = this.connectedAnalogDeck;
+
+                this.analogDeck.disconnectAudioInterface(deckId);
+
+                // Update UI
+                document.getElementById('connect-analog-btn').style.display = 'block';
+                document.getElementById('disconnect-analog-btn').style.display = 'none';
+                document.getElementById('analog-input-meter').style.display = 'none';
+
+                // Reset deck status
+                document.getElementById(`deck-${deckId}-status`).textContent = 'READY';
+                document.getElementById(`deck-${deckId}-status`).style.color = '';
+
+                this.connectedAnalogDeck = null;
+
+                this.log(`🔌 Disconnected analog deck from ${deckId.toUpperCase()}`);
+                this.showToast('Disconnected', 'Analog hardware disconnected', 'success');
+            }
+
+            loadMIDIMapping() {
+                const preset = document.getElementById('midi-preset-select').value;
+
+                if (preset === 'custom') {
+                    this.showToast('Custom Mapping', 'Use MIDI Learn to create custom mappings', 'info');
+                    return;
+                }
+
+                this.analogDeck.loadControllerMapping(preset);
+
+                const status = this.analogDeck.getStatus();
+                document.getElementById('midi-mapping-count').textContent = status.midiMappings;
+                document.getElementById('midi-status').style.display = 'block';
+
+                this.log(`📥 Loaded MIDI preset: ${preset}`);
+                this.showToast('MIDI Loaded', `${preset} mappings loaded`, 'success');
+            }
+
+            toggleMIDILearn() {
+                // MIDI Learn mode - would require more complex implementation
+                this.showToast('MIDI Learn', 'Click a control, then press a MIDI button to map', 'info', 5000);
+                this.log('🎓 MIDI Learn mode activated (simplified version)');
+                // In a full implementation, this would enable a mode where:
+                // 1. User clicks a UI control
+                // 2. User presses a MIDI button
+                // 3. Mapping is automatically created
+            }
+
+            showHardwareGuide(type) {
+                const guides = {
+                    'turntable': `
+🎵 Turntable Setup Guide
+
+Required Equipment:
+• Turntables (Technics 1200, etc.)
+• Audio Interface with phono preamp (or external preamp)
+• DVS control vinyl (Serato, Traktor, or Rekordbox)
+• RCA cables
+
+Connection:
+1. Connect turntables to audio interface LINE inputs
+2. If using phono preamp, connect to phono inputs
+3. Connect audio interface to computer via USB
+4. Select audio interface in NeuralMix
+5. Enable DVS and select your timecode type
+6. Load audio files and control with vinyl!
+
+Tips:
+• Use quality needles for best tracking
+• Calibrate tonearm weight properly
+• Keep vinyl clean for best timecode detection
+                    `.trim(),
+
+                    'cdj': `
+💿 CDJ Setup Guide
+
+Required Equipment:
+• CDJs (Pioneer CDJ-2000, etc.)
+• Audio Interface with line inputs
+• DVS control CDs (if using DVS mode)
+• RCA or XLR cables
+
+Connection:
+1. Connect CDJ line outputs to audio interface inputs
+2. Connect audio interface to computer via USB
+3. Select audio interface in NeuralMix
+4. Select target deck (A or B)
+
+Modes:
+• DVS Mode: Enable DVS, use control CDs to control digital files
+• Audio Mode: Play CDJ audio directly through NeuralMix mixer
+
+Tips:
+• Use balanced XLR cables for best quality
+• Set CDJ to line level output
+• Sync BPM for seamless mixing
+                    `.trim(),
+
+                    'controller': `
+🎛️ MIDI Controller Setup Guide
+
+Supported Controllers:
+• Pioneer DDJ series
+• Numark Mixtrack series
+• Traktor Kontrol S2/S4
+• Generic MIDI controllers
+
+Setup:
+1. Connect controller via USB
+2. Wait for driver installation
+3. NeuralMix will auto-detect controller
+4. Select controller from MIDI dropdown
+5. Load preset mapping for your controller
+6. Start DJing!
+
+MIDI Learn:
+1. Click "MIDI Learn" button
+2. Click a NeuralMix control (volume, EQ, etc.)
+3. Move controller knob/fader
+4. Mapping is created automatically
+
+Custom Mappings:
+• Each controller button/knob can be mapped
+• Supports: Play, Cue, Volume, EQ, Effects, Crossfader
+• Mappings are saved in browser
+                    `.trim(),
+
+                    'dvs': `
+📀 DVS (Digital Vinyl System) Setup
+
+What is DVS?
+DVS lets you control digital audio files using traditional turntables or CDJs with timecode media.
+
+Supported Systems:
+• Serato CV02 (most common)
+• Traktor Scratch
+• Rekordbox DVS
+
+Requirements:
+1. Turntables or DVS-capable CDJs
+2. Audio interface with low latency
+3. Timecode vinyl or CDs
+4. Quality needles (for vinyl)
+
+Setup Steps:
+1. Install timecode vinyl/CD on turntable/CDJ
+2. Connect to audio interface
+3. In NeuralMix: Enable DVS checkbox
+4. Select your timecode type
+5. Load a track in NeuralMix
+6. Play the timecode record
+7. Control digital file with vinyl/CD!
+
+Latency Tips:
+• Use "Interactive" latency mode
+• Close other applications
+• Use quality audio interface
+• Check CPU usage
+
+Troubleshooting:
+• Clean timecode vinyl regularly
+• Adjust needle weight
+• Check audio interface sample rate (48kHz recommended)
+• Ensure good signal levels
+                    `.trim(),
+
+                    'audio-interface': `
+🔊 Audio Interface Guide
+
+Recommended Interfaces:
+• Native Instruments Traktor Audio 2/6
+• Focusrite Scarlett series
+• Behringer U-Phoria series
+• PreSonus AudioBox
+
+Features to Look For:
+• Low latency performance (<10ms)
+• Multiple inputs (for multiple decks)
+• Phono preamp (for turntables)
+• 48kHz+ sample rate
+• USB audio class compliant
+
+Connection Guide:
+1. Install interface drivers (if needed)
+2. Connect interface to computer USB
+3. Connect turntables/CDJs to interface inputs
+4. Set interface as system audio device
+5. In NeuralMix: Select interface from dropdown
+6. Adjust input gain for proper levels
+
+Latency Settings:
+• Interactive: 10ms (DVS, best responsiveness)
+• Balanced: 50ms (good for most uses)
+• Playback: 100ms (most stable)
+
+Signal Path:
+Turntable → Phono Preamp → Interface → Computer → NeuralMix
+
+Levels:
+• Peak around -6dB for headroom
+• Avoid clipping (red)
+• Use interface gain, not software
+                    `.trim()
+                };
+
+                const guide = guides[type];
+
+                if (guide) {
+                    this.log(`📖 Hardware Guide: ${type}`);
+                    this.log(guide);
+                    this.showToast('Hardware Guide', 'Check console for detailed guide', 'info', 4000);
+                    alert(guide);
+                } else {
+                    this.showToast('Coming Soon', 'Guide not available yet', 'info');
+                }
             }
 
             log(message) {
