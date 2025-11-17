@@ -487,6 +487,16 @@
             color: #fef3c7;
         }
 
+        .btn-danger {
+            background: linear-gradient(145deg, #dc2626, #ef4444);
+            color: #fee2e2;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(145deg, #991b1b, #dc2626);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
+        }
+
         .mixer-controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1086,6 +1096,77 @@
             </div>
         </div>
 
+        <!-- Streaming Controls Section -->
+        <div class="p2p-section" style="margin-top: 20px;">
+            <h2 class="p2p-title">📺 Video & Audio Streaming</h2>
+            <div class="connection-grid">
+                <!-- YouTube Input -->
+                <div class="connection-panel">
+                    <h3 style="color: #ff0000; margin-bottom: 10px;">🎬 YouTube Input</h3>
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <input type="text" id="youtube-url" class="input" placeholder="YouTube URL or Video ID">
+                        <select id="youtube-deck" class="input" style="flex: 0 0 80px;">
+                            <option value="a">Deck A</option>
+                            <option value="b">Deck B</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <button class="btn btn-danger" onclick="app.loadYouTube()" style="flex: 1;">▶ Load</button>
+                        <button class="btn btn-primary" onclick="app.controlYouTube('play')">▶</button>
+                        <button class="btn btn-primary" onclick="app.controlYouTube('pause')">⏸</button>
+                        <button class="btn btn-primary" onclick="app.controlYouTube('stop')">⏹</button>
+                    </div>
+                </div>
+
+                <!-- Twitch Input -->
+                <div class="connection-panel">
+                    <h3 style="color: #9146ff; margin-bottom: 10px;">📡 Twitch Input</h3>
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <input type="text" id="twitch-url" class="input" placeholder="Twitch URL or Channel">
+                        <select id="twitch-deck" class="input" style="flex: 0 0 80px;">
+                            <option value="a">Deck A</option>
+                            <option value="b">Deck B</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <button class="btn btn-success" onclick="app.loadTwitch()" style="flex: 1;">▶ Load</button>
+                        <button class="btn btn-primary" onclick="app.controlTwitch('play')">▶</button>
+                        <button class="btn btn-primary" onclick="app.controlTwitch('pause')">⏸</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Streaming -->
+            <div class="connection-panel" style="margin-top: 15px;">
+                <h3 style="color: #22d3ee; margin-bottom: 10px;">📤 Live Stream Output</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 5px; display: block;">Platform</label>
+                        <select id="stream-platform" class="input">
+                            <option value="youtube">YouTube Live</option>
+                            <option value="twitch">Twitch</option>
+                            <option value="facebook">Facebook Live</option>
+                            <option value="custom">Custom RTMP</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="color: #9ca3af; font-size: 0.8rem; margin-bottom: 5px; display: block;">Stream Key</label>
+                        <input type="password" id="stream-key" class="input" placeholder="Your stream key">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <button class="btn btn-success" id="start-stream-btn" onclick="app.startOutputStream()">🔴 Start Stream</button>
+                    <button class="btn btn-danger" id="stop-stream-btn" onclick="app.stopOutputStream()" style="display: none;">⏹ Stop Stream</button>
+                    <button class="btn btn-primary" onclick="app.showStreamInfo()" data-tooltip="Show RTMP connection info">ℹ️ Info</button>
+                </div>
+                <div id="stream-status" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 0.85rem; color: #9ca3af; display: none;">
+                    <div><strong>Status:</strong> <span id="stream-status-text">Ready</span></div>
+                    <div><strong>Platform:</strong> <span id="stream-platform-text">-</span></div>
+                    <div><strong>RTMP URL:</strong> <span id="stream-rtmp-url" style="font-family: monospace; font-size: 0.75rem;">-</span></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Mixing Interface -->
         <div class="main-grid">
             <!-- Deck A -->
@@ -1321,11 +1402,16 @@
     <script type="module">
         // Import AudioSync module
         import { AudioSync } from './src/js/modules/audioSync.js';
+        // Import StreamingService module
+        import { StreamingService } from './src/js/modules/streamingService.js';
 
         class NeuralMixApp {
             constructor() {
                 // Initialize AudioSync
                 this.audioSync = new AudioSync();
+
+                // Initialize StreamingService (will be set after audioSync is initialized)
+                this.streamingService = null;
 
                 // UI State
                 this.mixer = { crossfaderPosition: 0.5 };
@@ -1383,6 +1469,27 @@
                 this.audioSync.createDeck('b');
 
                 this.log('🎛️ Decks A and B created');
+
+                // Initialize StreamingService
+                this.streamingService = new StreamingService(this.audioSync);
+
+                // Setup streaming callbacks
+                this.streamingService.onStreamReady = (metadata) => {
+                    this.log(`📺 Stream ready: ${metadata.platform} - ${metadata.title || metadata.channel || ''}`);
+                    this.showToast('Stream Loaded', `${metadata.platform.toUpperCase()} connected to Deck ${metadata.deckId.toUpperCase()}`, 'success');
+                };
+
+                this.streamingService.onStreamError = (message, error) => {
+                    this.log(`❌ Streaming Error: ${message}`);
+                    this.showToast('Streaming Error', message, 'error');
+                    console.error(error);
+                };
+
+                this.streamingService.onStreamStatusChange = (status) => {
+                    this.log(`📡 ${status.platform}: ${status.state}`);
+                };
+
+                this.log('📺 Streaming service initialized');
             }
 
             setupUI() {
@@ -2052,6 +2159,215 @@
                     this.log('❌ Failed to copy to clipboard');
                     this.showToast('Copy Failed', 'Unable to copy to clipboard', 'error');
                 });
+            }
+
+            // ========== STREAMING METHODS ==========
+
+            async loadYouTube() {
+                const url = document.getElementById('youtube-url').value.trim();
+                const deckId = document.getElementById('youtube-deck').value;
+
+                if (!url) {
+                    this.showToast('Missing URL', 'Enter a YouTube URL or video ID', 'warning');
+                    return;
+                }
+
+                try {
+                    this.log(`📺 Loading YouTube video on Deck ${deckId.toUpperCase()}...`);
+                    this.showToast('Loading YouTube', 'Please wait...', 'info', 2000);
+
+                    const metadata = await this.streamingService.loadYouTubeStream(deckId, url);
+
+                    this.log(`✅ YouTube loaded: ${metadata.title}`);
+                    this.log(`   Duration: ${Math.floor(metadata.duration / 60)}:${Math.floor(metadata.duration % 60).toString().padStart(2, '0')}`);
+
+                    // Update deck status
+                    document.getElementById(`deck-${deckId}-status`).textContent = 'YOUTUBE';
+                    document.getElementById(`deck-${deckId}-status`).style.color = '#ff0000';
+
+                } catch (error) {
+                    this.log(`❌ Failed to load YouTube: ${error.message}`);
+                    this.showToast('YouTube Error', error.message, 'error');
+                }
+            }
+
+            async loadTwitch() {
+                const url = document.getElementById('twitch-url').value.trim();
+                const deckId = document.getElementById('twitch-deck').value;
+
+                if (!url) {
+                    this.showToast('Missing URL', 'Enter a Twitch URL or channel name', 'warning');
+                    return;
+                }
+
+                try {
+                    this.log(`📡 Loading Twitch stream on Deck ${deckId.toUpperCase()}...`);
+                    this.showToast('Loading Twitch', 'Please wait...', 'info', 2000);
+
+                    const metadata = await this.streamingService.loadTwitchStream(deckId, url);
+
+                    this.log(`✅ Twitch loaded: ${metadata.channel}`);
+
+                    // Update deck status
+                    document.getElementById(`deck-${deckId}-status`).textContent = 'TWITCH LIVE';
+                    document.getElementById(`deck-${deckId}-status`).style.color = '#9146ff';
+
+                } catch (error) {
+                    this.log(`❌ Failed to load Twitch: ${error.message}`);
+                    this.showToast('Twitch Error', error.message, 'error');
+                }
+            }
+
+            controlYouTube(action) {
+                if (!this.streamingService.youtubePlayer) {
+                    this.showToast('No YouTube Stream', 'Load a YouTube video first', 'warning');
+                    return;
+                }
+
+                const success = this.streamingService.controlYouTube(action);
+
+                if (success) {
+                    const actionText = {
+                        'play': '▶ Playing',
+                        'pause': '⏸ Paused',
+                        'stop': '⏹ Stopped'
+                    };
+                    this.log(`📺 YouTube: ${actionText[action]}`);
+                    this.showToast('YouTube', actionText[action], 'success', 2000);
+                }
+            }
+
+            controlTwitch(action) {
+                if (!this.streamingService.twitchPlayer) {
+                    this.showToast('No Twitch Stream', 'Load a Twitch stream first', 'warning');
+                    return;
+                }
+
+                const success = this.streamingService.controlTwitch(action);
+
+                if (success) {
+                    const actionText = {
+                        'play': '▶ Playing',
+                        'pause': '⏸ Paused'
+                    };
+                    this.log(`📡 Twitch: ${actionText[action]}`);
+                    this.showToast('Twitch', actionText[action], 'success', 2000);
+                }
+            }
+
+            async startOutputStream() {
+                const platform = document.getElementById('stream-platform').value;
+                const streamKey = document.getElementById('stream-key').value.trim();
+
+                if (!streamKey) {
+                    this.showToast('Missing Stream Key', 'Enter your platform stream key', 'warning');
+                    return;
+                }
+
+                try {
+                    this.log(`🔴 Initializing output stream to ${platform.toUpperCase()}...`);
+                    this.showToast('Starting Stream', `Preparing ${platform.toUpperCase()} stream...`, 'info');
+
+                    const streamInfo = await this.streamingService.initializeOutputStream({
+                        platform: platform,
+                        streamKey: streamKey
+                    });
+
+                    this.log(`✅ Stream initialized`);
+                    this.log(`   Platform: ${platform.toUpperCase()}`);
+                    this.log(`   RTMP URL: ${streamInfo.rtmpUrl}`);
+                    this.log(`   Note: ${streamInfo.note}`);
+
+                    // Update UI
+                    document.getElementById('start-stream-btn').style.display = 'none';
+                    document.getElementById('stop-stream-btn').style.display = 'block';
+                    document.getElementById('stream-status').style.display = 'block';
+                    document.getElementById('stream-status-text').textContent = 'Ready';
+                    document.getElementById('stream-platform-text').textContent = platform.toUpperCase();
+                    document.getElementById('stream-rtmp-url').textContent = streamInfo.rtmpUrl;
+
+                    // Start browser-based recording (not true RTMP streaming)
+                    const started = this.streamingService.startBrowserStream();
+
+                    if (started) {
+                        document.getElementById('stream-status-text').textContent = 'Streaming';
+                        document.getElementById('stream-status-text').style.color = '#22c55e';
+                        this.showToast('Stream Started!', `Recording audio for ${platform.toUpperCase()}`, 'success');
+                        this.log('🔴 Stream recording started (browser-based)');
+                        this.log('⚠️ For true live streaming, use OBS or streaming software');
+                        this.log('   Copy the RTMP URL and stream key to your streaming software');
+                    }
+
+                } catch (error) {
+                    this.log(`❌ Failed to start stream: ${error.message}`);
+                    this.showToast('Stream Error', error.message, 'error');
+                }
+            }
+
+            async stopOutputStream() {
+                try {
+                    this.log('⏹ Stopping output stream...');
+
+                    const blob = await this.streamingService.stopBrowserStream();
+
+                    if (blob) {
+                        // Download the recorded stream
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = `stream_${Date.now()}.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        a.remove();
+
+                        this.log('✅ Stream recording saved');
+                        this.showToast('Stream Saved', 'Recording downloaded', 'success');
+                    }
+
+                    // Reset UI
+                    document.getElementById('start-stream-btn').style.display = 'block';
+                    document.getElementById('stop-stream-btn').style.display = 'none';
+                    document.getElementById('stream-status').style.display = 'none';
+
+                } catch (error) {
+                    this.log(`❌ Error stopping stream: ${error.message}`);
+                    this.showToast('Stop Error', error.message, 'error');
+                }
+            }
+
+            showStreamInfo() {
+                const platform = document.getElementById('stream-platform').value;
+                const rtmpUrl = this.streamingService.getRTMPUrl(platform);
+
+                const infoText = `
+📤 Live Streaming Setup for ${platform.toUpperCase()}
+
+For true live streaming to ${platform.toUpperCase()}, use streaming software like:
+• OBS Studio (recommended)
+• Streamlabs OBS
+• Restream.io
+
+Setup Instructions:
+1. Get your stream key from ${platform.toUpperCase()} dashboard
+2. In OBS: Settings → Stream
+3. Service: ${platform === 'custom' ? 'Custom' : platform.charAt(0).toUpperCase() + platform.slice(1)}
+4. Server: ${rtmpUrl}
+5. Stream Key: [Your key from ${platform.toUpperCase()}]
+6. In NeuralMix: Your audio will be captured by OBS
+
+Browser Limitation:
+The "Start Stream" button creates a local recording, not true live streaming.
+For live RTMP streaming, you need server-side software.
+                `.trim();
+
+                this.log('ℹ️ Streaming Information:');
+                this.log(infoText);
+                this.showToast('Streaming Info', 'Check console for setup instructions', 'info', 5000);
+
+                // Also show in alert for easy reading
+                alert(infoText);
             }
 
             log(message) {
