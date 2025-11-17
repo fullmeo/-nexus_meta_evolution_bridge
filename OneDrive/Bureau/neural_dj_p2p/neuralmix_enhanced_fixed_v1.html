@@ -64,46 +64,21 @@
         }
 
         .quick-btn {
-            padding: 10px 20px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-family: monospace;
             font-weight: bold;
-            font-size: 0.85rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
             background: linear-gradient(135deg, #22c55e, #16a34a);
             color: white;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
-        }
-
-        .quick-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .quick-btn:hover::before {
-            width: 300px;
-            height: 300px;
         }
 
         .quick-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.5);
-        }
-
-        .quick-btn:active {
-            transform: translateY(-1px) scale(1.02);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4);
         }
 
         .main-grid {
@@ -138,39 +113,11 @@
 
         .deck-status {
             font-size: 0.8rem;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
             background: rgba(34, 197, 94, 0.2);
             color: #22c55e;
             border: 1px solid rgba(34, 197, 94, 0.3);
-            font-weight: bold;
-            transition: all 0.3s ease;
-            animation: pulse 2s infinite;
-        }
-
-        .deck-status.loading {
-            background: rgba(251, 191, 36, 0.2);
-            color: #fbbf24;
-            border-color: rgba(251, 191, 36, 0.3);
-            animation: loadingPulse 1s infinite;
-        }
-
-        .deck-status.error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
-            animation: shake 0.5s;
-        }
-
-        @keyframes loadingPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.05); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
         }
 
         .stem-controls {
@@ -335,37 +282,16 @@
         .play-btn {
             background: linear-gradient(145deg, #065f46, #047857);
             color: #6ee7b7;
-            border: 3px solid rgba(16, 185, 129, 0.5);
+            border: 2px solid rgba(16, 185, 129, 0.3);
             border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            font-size: 2rem;
+            width: 70px;
+            height: 70px;
+            font-size: 1.8rem;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .play-btn::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.5s, height 0.5s;
-        }
-
-        .play-btn:hover::after {
-            width: 100%;
-            height: 100%;
         }
 
         .play-btn:hover {
@@ -376,24 +302,7 @@
         .play-btn.playing {
             background: linear-gradient(145deg, #991b1b, #dc2626);
             color: #fca5a5;
-            border: 3px solid rgba(239, 68, 68, 0.5);
-            animation: playingPulse 1.5s infinite;
-            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-        }
-
-        .play-btn:active {
-            transform: scale(0.95);
-        }
-
-        @keyframes playingPulse {
-            0%, 100% {
-                box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 6px 30px rgba(239, 68, 68, 0.6);
-                transform: scale(1.05);
-            }
+            border: 2px solid rgba(239, 68, 68, 0.3);
         }
 
         .center-mixer {
@@ -714,318 +623,9 @@
                 grid-template-columns: 1fr;
             }
         }
-        /* ========== TOAST NOTIFICATION SYSTEM ========== */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            max-width: 400px;
-            pointer-events: none;
-        }
-
-        .toast {
-            background: rgba(31, 41, 55, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 12px;
-            padding: 16px 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.9rem;
-            animation: toastSlideIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            pointer-events: all;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 300px;
-        }
-
-        .toast:hover {
-            transform: translateX(-5px);
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
-        }
-
-        .toast-icon {
-            font-size: 1.5rem;
-            flex-shrink: 0;
-            animation: iconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        .toast-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .toast-title {
-            font-weight: bold;
-            font-size: 0.95rem;
-        }
-
-        .toast-message {
-            font-size: 0.85rem;
-            opacity: 0.9;
-        }
-
-        .toast.success {
-            border-left: 4px solid #22c55e;
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(31, 41, 55, 0.95));
-        }
-
-        .toast.success .toast-title {
-            color: #22c55e;
-        }
-
-        .toast.error {
-            border-left: 4px solid #ef4444;
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(31, 41, 55, 0.95));
-        }
-
-        .toast.error .toast-title {
-            color: #ef4444;
-        }
-
-        .toast.warning {
-            border-left: 4px solid #fbbf24;
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(31, 41, 55, 0.95));
-        }
-
-        .toast.warning .toast-title {
-            color: #fbbf24;
-        }
-
-        .toast.info {
-            border-left: 4px solid #3b82f6;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(31, 41, 55, 0.95));
-        }
-
-        .toast.info .toast-title {
-            color: #3b82f6;
-        }
-
-        .toast.fadeOut {
-            animation: toastSlideOut 0.4s ease-out forwards;
-        }
-
-        @keyframes toastSlideIn {
-            0% {
-                opacity: 0;
-                transform: translateX(100%) scale(0.8);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        @keyframes toastSlideOut {
-            0% {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateX(150%) scale(0.8);
-            }
-        }
-
-        @keyframes iconPop {
-            0% {
-                transform: scale(0);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.3);
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        /* ========== IMPROVED SLIDER STYLES ========== */
-        .control-slider {
-            width: 100%;
-            height: 40px;
-            background: linear-gradient(to right, #1f2937, #374151);
-            border-radius: 20px;
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .control-slider::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 50%;
-            background: linear-gradient(to right, #a855f7, #ec4899);
-            opacity: 0.3;
-            border-radius: 20px;
-            transition: width 0.3s ease;
-        }
-
-        .slider-handle {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-            left: 50%;
-            transition: transform 0.1s ease, box-shadow 0.3s ease;
-            z-index: 2;
-        }
-
-        .slider-handle:hover {
-            transform: translateY(-50%) scale(1.2);
-            box-shadow: 0 5px 15px rgba(168, 85, 247, 0.5);
-        }
-
-        /* ========== RESPONSIVE DESIGN ========== */
-        @media (max-width: 1400px) {
-            .main-grid {
-                grid-template-columns: 1fr 350px 1fr;
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .center-mixer {
-                order: 1;
-            }
-
-            .title {
-                font-size: 2.5rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .title {
-                font-size: 2rem;
-            }
-
-            .quick-actions {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .quick-btn {
-                width: 100%;
-            }
-
-            .play-btn {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5rem;
-            }
-
-            #toast-container {
-                left: 10px;
-                right: 10px;
-                max-width: none;
-            }
-
-            .toast {
-                min-width: auto;
-            }
-        }
-
-        /* ========== LOADING SPINNER ========== */
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* ========== IMPROVED WAVEFORM ========== */
-        .waveform-container {
-            height: 120px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            border-radius: 10px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .waveform-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        /* ========== HELP TOOLTIP ========== */
-        [data-tooltip] {
-            position: relative;
-        }
-
-        [data-tooltip]:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 120%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 8px 12px;
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            z-index: 1000;
-            animation: tooltipFadeIn 0.2s ease;
-        }
-
-        [data-tooltip]:hover::before {
-            content: '';
-            position: absolute;
-            bottom: 110%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 5px solid transparent;
-            border-top-color: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-        }
-
-        @keyframes tooltipFadeIn {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Toast Container -->
-    <div id="toast-container"></div>
     <div class="container">
         <!-- Performance Monitor -->
         <div id="perf-monitor" class="performance-monitor">
@@ -1040,11 +640,11 @@
             <p class="subtitle">Professional DJ Platform - AudioSync Module</p>
             <p class="description">Real-time collaboration with modular audio architecture & BPM sync</p>
             <div class="quick-actions">
-                <button class="quick-btn" onclick="app.loadDemoTracks()" data-tooltip="View demo instructions">🎵 Demo</button>
-                <button class="quick-btn" onclick="app.togglePerfMonitor()" data-tooltip="Toggle performance monitor">📊 Monitor</button>
-                <button class="quick-btn" onclick="app.autoSync()" data-tooltip="Auto-sync deck BPMs">🤖 Auto-Sync</button>
-                <button class="quick-btn" onclick="app.enableMicrophone()" data-tooltip="Enable live microphone input">🎤 Mic ON</button>
-                <button class="quick-btn" onclick="app.shareSession()" data-tooltip="Share session link">📱 Share</button>
+                <button class="quick-btn" onclick="app.loadDemoTracks()">🎵 Demo</button>
+                <button class="quick-btn" onclick="app.togglePerfMonitor()">📊 Monitor</button>
+                <button class="quick-btn" onclick="app.autoSync()">🤖 Auto-Sync</button>
+                <button class="quick-btn" onclick="app.enableMicrophone()">🎤 Mic ON</button>
+                <button class="quick-btn" onclick="app.shareSession()">📱 Share</button>
             </div>
         </div>
 
@@ -1148,7 +748,7 @@
                             <div class="control-value" id="low-a-value">0dB</div>
                         </div>
                     </div>
-                    <button class="play-btn" id="play-a" data-tooltip="Play / Pause Deck A">▶</button>
+                    <button class="play-btn" id="play-a">▶</button>
                 </div>
 
                 <div class="tempo-controls">
@@ -1283,7 +883,7 @@
                             <div class="control-value" id="low-b-value">0dB</div>
                         </div>
                     </div>
-                    <button class="play-btn" id="play-b" data-tooltip="Play / Pause Deck B">▶</button>
+                    <button class="play-btn" id="play-b">▶</button>
                 </div>
 
                 <div class="tempo-controls">
@@ -1498,10 +1098,7 @@
 
                 const statusEl = document.getElementById(`deck-${deck}-status`);
                 statusEl.textContent = 'LOADING...';
-                statusEl.classList.add('loading');
-                statusEl.classList.remove('error');
-
-                this.showToast('Loading Track', `Loading ${file.name}...`, 'info', 2000);
+                statusEl.style.color = '#fbbf24';
 
                 try {
                     // Load audio file using AudioSync
@@ -1511,16 +1108,13 @@
                     this.drawWaveform(deck, audioData.buffer);
 
                     statusEl.textContent = 'READY';
-                    statusEl.classList.remove('loading');
+                    statusEl.style.color = '#22c55e';
 
                     this.log(`🎵 Loaded: ${audioData.fileName} (${Math.round(audioData.duration)}s, ${audioData.bpm} BPM)`);
-                    this.showToast('Track Loaded', `${audioData.fileName} - ${audioData.bpm} BPM`, 'success');
                 } catch (error) {
                     statusEl.textContent = 'ERROR';
-                    statusEl.classList.remove('loading');
-                    statusEl.classList.add('error');
+                    statusEl.style.color = '#ef4444';
                     this.log(`❌ Load failed: ${error.message}`);
-                    this.showToast('Load Failed', error.message, 'error');
                 }
             }
 
@@ -1556,7 +1150,6 @@
 
                 if (!deckData) {
                     this.log(`⚠️ Deck ${deck.toUpperCase()} not found`);
-                    this.showToast('Deck Not Found', `Deck ${deck.toUpperCase()} is not available`, 'error');
                     return;
                 }
 
@@ -1566,7 +1159,6 @@
                     button.textContent = '▶';
                     button.classList.remove('playing');
                     this.log(`⏸️ Paused Deck ${deck.toUpperCase()}`);
-                    this.showToast('Paused', `Deck ${deck.toUpperCase()} paused`, 'info', 2000);
                 } else {
                     if (deckData.buffer) {
                         // Start playback
@@ -1575,10 +1167,8 @@
                         button.classList.add('playing');
                         this.startVisualization(deck);
                         this.log(`▶️ Playing Deck ${deck.toUpperCase()}`);
-                        this.showToast('Playing', `Deck ${deck.toUpperCase()} started`, 'success', 2000);
                     } else {
                         this.log(`⚠️ No track loaded on Deck ${deck.toUpperCase()}`);
-                        this.showToast('No Track', `Load a track on Deck ${deck.toUpperCase()} first`, 'warning');
                     }
                 }
             }
@@ -1857,7 +1447,6 @@
 
                 if (!deckA || !deckB || !deckA.bpm || !deckB.bpm) {
                     this.log('⚠️ Load tracks on both decks first');
-                    this.showToast('Sync Failed', 'Load tracks on both decks first', 'warning');
                     return;
                 }
 
@@ -1870,11 +1459,8 @@
 
                     // Update BPM display
                     document.getElementById('bpm-b').textContent = `${result.masterBPM} BPM (synced)`;
-
-                    this.showToast('Synced!', `Decks synced at ${result.masterBPM} BPM`, 'success');
                 } else {
                     this.log('❌ Auto-sync failed');
-                    this.showToast('Sync Failed', 'Unable to sync decks', 'error');
                 }
             }
 
@@ -1885,14 +1471,11 @@
                     if (enabled) {
                         this.log('🎤 Microphone enabled - Live input active');
                         this.audioSync.setMicVolume(0.5);
-                        this.showToast('Microphone ON', 'Live input is active', 'success');
                     } else {
                         this.log('❌ Microphone access denied');
-                        this.showToast('Access Denied', 'Grant microphone permission', 'error');
                     }
                 } catch (error) {
                     this.log(`❌ Microphone error: ${error.message}`);
-                    this.showToast('Microphone Error', error.message, 'error');
                 }
             }
 
@@ -1920,48 +1503,8 @@
                 messageDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
                 chatMessages.appendChild(messageDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-
+                
                 console.log(message);
-            }
-
-            showToast(title, message, type = 'info', duration = 4000) {
-                const container = document.getElementById('toast-container');
-
-                const icons = {
-                    success: '✅',
-                    error: '❌',
-                    warning: '⚠️',
-                    info: 'ℹ️'
-                };
-
-                const toast = document.createElement('div');
-                toast.className = `toast ${type}`;
-
-                toast.innerHTML = `
-                    <div class="toast-icon">${icons[type] || icons.info}</div>
-                    <div class="toast-content">
-                        <div class="toast-title">${title}</div>
-                        ${message ? `<div class="toast-message">${message}</div>` : ''}
-                    </div>
-                `;
-
-                container.appendChild(toast);
-
-                // Remove on click
-                toast.addEventListener('click', () => {
-                    toast.classList.add('fadeOut');
-                    setTimeout(() => toast.remove(), 400);
-                });
-
-                // Auto remove
-                setTimeout(() => {
-                    if (toast.parentElement) {
-                        toast.classList.add('fadeOut');
-                        setTimeout(() => toast.remove(), 400);
-                    }
-                }, duration);
-
-                return toast;
             }
         }
 
